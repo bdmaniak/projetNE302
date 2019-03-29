@@ -70,15 +70,13 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 		}
 	}
 
-
 	return chaine;
-
 }
 
 
 
 // Recupere le n-ieme caractere d'un element string
-char recupChar(string *chaine, int n) {
+char recupChar (string *chaine, int n) {
 
 	fseek(chaine->fichier, chaine->depart + n, SEEK_SET);
 	return getc(chaine->fichier);
@@ -87,7 +85,7 @@ char recupChar(string *chaine, int n) {
 
 
 //compare un string avec une chaine de caractere
-int compareChaineStr(string *s1, char *chaine) {
+int compareChaineStr (string *s1, char *chaine) {
 
 	int taille = 0;
 	int i = 0;
@@ -101,6 +99,7 @@ int compareChaineStr(string *s1, char *chaine) {
 		if (recupChar(s1, i) != chaine[i]) egal = 0;
 		i++;
 	}
+
 	return egal;
 }
 
@@ -130,7 +129,7 @@ void afficherString(string *chaine) {
 }
 
 
-int verifieFormat(string recu, string grammaire){
+int verifieFormat(string recu, string grammaire) {
 
 }
 
