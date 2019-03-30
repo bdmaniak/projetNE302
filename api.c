@@ -130,7 +130,8 @@ void afficherString(string *chaine) {
 
 
 int verifieFormat(string recu, string grammaire) {
-
+	// A faire
+	return 1;
 }
 
 
@@ -221,13 +222,6 @@ noeud *creerArbreV2 (/*FILE *recu, */FILE *grammaire, noeud *n1) {
 		fils
 
 	}
-
-
-
-
-
-
-
 }*/
 
 
@@ -269,32 +263,37 @@ void purgeTree(void *root) {
 
 
 int parseur(char *req, int len) {
-
-
+	// A faire
+	return 0;
 }
 
 
 
 int main() {
-
 	char test;
+	string* chaineNulle = NULL;
 	FILE *grammaire;
-	grammaire = fopen("grammaire.txt", "r");
-	string *chaine = recupereMot(3, 2, grammaire);
-	string *chaine2 = recupereMot(2, 2, grammaire);
-	printf("premiere lettre: %d,	taille: %d\n", chaine->depart, chaine->taille);
-	afficherString(chaine);
-	printf("OK");
-	printf("%d\n", compareChaineStr(chaine, "URI"));
-	printf("OK");
-	noeud *racine;
-	racine = malloc(sizeof(noeud));
-	printf("OK");
-	racine -> nomChamp = recupereMot(0,0,grammaire);
-	printf("OK");
-	racine = creerArbreV2(grammaire, racine);
-	printf("Champ racine:	");
-	afficherString(racine -> nomChamp);
 
+	grammaire = fopen("grammaire.txt", "r");
+
+//	string *chaine = recupereMot(3, 2, grammaire);
+//	string *chaine2 = recupereMot(2, 2, grammaire);
+//	printf("premiere lettre: %d,	taille: %d\n", chaine->depart, chaine->taille);
+//	afficherString(chaine);
+//	printf("OK");
+//	printf("%d\n", compareChaineStr(chaine, "URI"));
+//	printf("OK");
+	//compareChaineStr(chaineNulle, "segfault");
+//	noeud *racine;
+//	racine = malloc(sizeof(noeud));
+//	printf("OK");
+//	racine -> nomChamp = recupereMot(0,0,grammaire);
+	afficherString(recupereMot(2196, 0, grammaire));
+	printf("%d\n",rechercheMot("der", 6, grammaire));
+//	printf("OK");
+	//racine = creerArbreV2(grammaire, racine);
+	//printf("Champ racine:	");
+	//afficherString(racine -> nomChamp);
+	
 	return 0;
 }

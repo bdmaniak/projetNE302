@@ -31,6 +31,9 @@ void purgeTree(void *root);
 // L'appel à votre parser un char* et une longueur à parser.
 int parseur(char *req, int len);
 
+
+// Ce que l'on a ajouté comme fonctions
+
 //Permet de faire pointer le curseur de fichier à la n-ième ligne
 int pointeurLigne(FILE *fic, int n);
 
