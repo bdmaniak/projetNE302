@@ -1,3 +1,22 @@
+typedef struct String {
+	FILE * fichier;
+	int depart;
+	int taille;
+} string;
+
+
+typedef struct Arbre {
+  struct Arbre *fils; //Tableau de pointeurs vers les fils
+  struct Arbre *frere;
+  struct Arbre *pere;  //Pointeur vers le pere
+  int nbFils; //Pour connaitre le nombre de fils du tableau de pointeurs
+  string *nomChamp;
+  string *valeurChamp;
+} noeud;
+
+
+
+
 // defini un type pour la liste chainee renvoyée en réponse de  la requete de recherche dans l'arbre.
 typedef struct _token {
   void *node;
@@ -5,6 +24,8 @@ typedef struct _token {
   struct _token *next;
   // next pointe vers le prochain token.
 } _Token;
+
+
 
 // Fonction qui retourne un pointeur (type opaque) vers la racine de l'arbre construit.
 void *getRootTree();

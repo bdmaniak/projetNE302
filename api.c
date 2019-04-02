@@ -1,21 +1,245 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 #include "api.h"
 
-typedef struct String {
-	FILE * fichier;
-	int depart;
-	int taille;
-} string;
 
 
-typedef struct Arbre {
-  struct Arbre **filsTab; //Tableau de pointeurs vers les fils
-  struct Arbre *pere;  //Pointeur vers le pere
-  int nbFils; //Pour connaitre le nombre de fils du tableau de pointeurs
-  string *nomChamp;
-  string *valeurChamp;
-} noeud;
+
+
+
+
+noeud *creerNoeud(string *s1, string *s2){
+	noeud *n1 = malloc(sizeof(noeud));
+	n1 -> nomChamp = s1;
+	n1 -> valeurChamp = s2;
+	return n1;
+
+
+}
+
+void ajouteFils(noeud *n1, noeud *n2){
+
+	if (n1 -> fils == NULL){
+		
+		n1 -> fils = n2;
+		
+	}
+	else{
+		noeud *repere = n1 -> fils;
+		while (repere -> frere != NULL){
+			repere = repere -> frere;			
+		}
+		repere -> frere = n2;
+
+	}
+	
+
+
+}
+
+
+
+void ajouteFrere(noeud *n1, noeud *n2){
+
+	if (n1 == NULL){
+		n1 = n2;
+		
+	}
+
+	else if (n1 -> frere == NULL){
+		n1 -> frere = n2;
+		
+	}
+	else{
+
+		
+		noeud *repere = n1 -> frere;
+		while (repere -> frere != NULL){
+			
+			repere = repere -> frere;			
+		}
+		repere -> frere = n2;
+
+	}
+	
+
+
+}
+
+
+int tailleNoeud (noeud *n1){
+	int taille = 0;
+	if (n1 == NULL) taille = 0;
+
+	else{
+		noeud *repere = n1;
+		taille = (repere -> valeurChamp)->taille;
+		while (repere -> frere != NULL){
+			repere = repere -> frere;
+			taille += (repere -> valeurChamp)->taille;			
+		}
+
+	}
+	return taille;
+
+}
+
+
+noeud *etoile(noeud *(*fonction)(char *, int *), char *chaine, int *indice, int i, int j){
+
+
+	if (j == 0) j = 10000000;
+	int compteur = 0;
+	noeud *nfils, *nfrere;
+	nfils = NULL;
+	nfils = fonction(chaine, indice);
+	
+	while ((nfils != NULL) && ((nfrere = fonction(chaine, indice)) != NULL) && (compteur < j)){
+		ajouteFrere(nfils, nfrere);
+		compteur++;
+	}
+	if ((compteur < i) || (compteur > j)){
+		nfils = NULL;
+		//Fonction qui supprime tout
+
+	}	
+	return nfils;
+
+
+}
+
+char lire (FILE *lu, int indice){
+	fseek(lu, indice, SEEK_SET);
+	return getc(lu);
+
+}
+
+string *creerString(FILE *fic, int start, int size){
+	string *st = malloc(sizeof(string));
+	st -> fichier = fic;
+	st->depart = start;
+	st-> taille = size; 
+
+	return st;
+
+}
+
+
+int rechercheMot(char *mot, FILE *fic){
+
+	int indice = 0;
+	string *st = NULL;
+	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareChaineStr(st, mot))){
+		indice++;
+		
+	}
+	
+	if (!compareChaineStr (st, mot)) indice = -1;
+
+	return indice;
+
+
+
+}
+
+
+noeud *SP (FILE *grammaire, FILE *lu, int *indice){
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("SP", grammaire), 0, grammaire);
+	string *s2 = creerString(lu, *indice, 1); 
+	if (lire(lu, *indice) == ' '){
+		
+		n1 = creerNoeud(s1, s2);
+		(*indice)++;
+
+	}
+	return n1;
+
+}
+
+
+noeud *HTAB (FILE *grammaire, FILE *lu, int *indice){
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("HTAB", grammaire), 0, grammaire);
+	string *s2 = creerString(lu, *indice, 1); 
+	if (lire(lu, *indice) == '	'){
+		
+		n1 = creerNoeud(s1, s2);
+		(*indice)++;
+
+	}
+	return n1;
+
+}
+
+noeud *DIGIT (FILE *grammaire, FILE *lu, int *indice){
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("DIGIT", grammaire), 0, grammaire);
+	string *s2 = creerString(lu, *indice, 1); 
+	if (isdigit(lire(lu, *indice))){
+		
+		n1 = creerNoeud(s1, s2);
+		(*indice)++;
+
+	}
+	return n1;
+
+}
+
+
+noeud *ALPHA (FILE *grammaire, FILE *lu, int *indice){
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("ALPHA", grammaire), 0, grammaire);
+	string *s2 = creerString(lu, *indice, 1); 
+	if (isalpha(lire(lu, *indice))){
+		
+		n1 = creerNoeud(s1, s2);
+		(*indice)++;
+
+	}
+	return n1;
+
+}
+
+
+
+noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, char *mot){
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("case_insensitive_string", grammaire), 0, grammaire);
+	int taille = strlen(mot);
+	string *s2 = creerString(lu, *indice, taille); 
+	int correct = 1;
+	int i = 0;
+	while ((i < taille) && (correct) && (lire(lu, (*indice) + i) != EOF) ){
+		printf("lu: %x		,mot: %x\n",lire(lu, (*indice) + i), mot[i]);
+		if (lire(lu, (*indice) + i) != mot[i]) correct = 0;
+		else i++;
+		printf("i: %d\n", i);
+
+	}
+	if (i == taille){
+		
+		n1 = creerNoeud(s1, s2);
+		(*indice) += taille;
+
+	}
+	return n1;
+
+}
+
+
 
 
 //Permet de faire pointer le curseur de fichier à la n-ième ligne
@@ -99,7 +323,6 @@ int compareChaineStr (string *s1, char *chaine) {
 		if (recupChar(s1, i) != chaine[i]) egal = 0;
 		i++;
 	}
-
 	return egal;
 }
 
@@ -132,6 +355,31 @@ void afficherString(string *chaine) {
 int verifieFormat(string recu, string grammaire) {
 	// A faire
 	return 1;
+}
+
+
+noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int j){
+
+	noeud *n1 = NULL;
+	noeud *n2 = NULL;	
+
+	//Cas de base
+	if (i == j){
+
+		if ((compareChaineStr(recupereMot(ligne, i, grammaire), "ALPHA")) && ((n2 = ALPHA (grammaire, lu, indice)) != NULL)){
+			n1 = n2;	
+		}
+		if ((compareChaineStr(recupereMot(ligne, i, grammaire), "DIGIT")) && ((n2 = DIGIT(grammaire, lu, indice)) != NULL)){
+			n1 = n2;	
+		}
+
+
+	}
+
+
+
+	return n1;
+
 }
 
 
@@ -175,7 +423,7 @@ int verifieFormat(string recu, string grammaire) {
 }*/
 
 
-noeud *creerArbreV2 (/*FILE *recu, */FILE *grammaire, noeud *n1) {
+/*noeud *creerArbreV2 (FILE *recu, FILE *grammaire, noeud *n1) {
 
 
 	int i = 0;
@@ -208,21 +456,9 @@ noeud *creerArbreV2 (/*FILE *recu, */FILE *grammaire, noeud *n1) {
 
 	printf("OK3");
 	return n1;
-}
-
-
-/*noeud *creerArbre(FILE *recu, FILE *grammaire) {
-
-
-	noeud *racine = malloc(sizeof(noeud));
-	racine -> nomChamp = recupereMot(0,0,grammaire);
-
-
-	while (rechercheMot(0,i, grammaire) != NULL) {
-		fils
-
-	}
 }*/
+
+
 
 
 
@@ -270,30 +506,20 @@ int parseur(char *req, int len) {
 
 
 int main() {
-	char test;
-	string* chaineNulle = NULL;
+	
 	FILE *grammaire;
-
+	FILE *lu;
+	int indice = 0;
 	grammaire = fopen("grammaire.txt", "r");
 
-//	string *chaine = recupereMot(3, 2, grammaire);
-//	string *chaine2 = recupereMot(2, 2, grammaire);
-//	printf("premiere lettre: %d,	taille: %d\n", chaine->depart, chaine->taille);
-//	afficherString(chaine);
-//	printf("OK");
-//	printf("%d\n", compareChaineStr(chaine, "URI"));
-//	printf("OK");
-	//compareChaineStr(chaineNulle, "segfault");
-//	noeud *racine;
-//	racine = malloc(sizeof(noeud));
-//	printf("OK");
-//	racine -> nomChamp = recupereMot(0,0,grammaire);
-	afficherString(recupereMot(2196, 0, grammaire));
-	printf("%d\n",rechercheMot("der", 6, grammaire));
-//	printf("OK");
-	//racine = creerArbreV2(grammaire, racine);
-	//printf("Champ racine:	");
-	//afficherString(racine -> nomChamp);
+	lu = fopen("test.txt", "r");
+
+	noeud *n1;
+	n1 = creerArbre(grammaire,lu, &indice, 12, 2, 2);
+	if (n1 != NULL) afficherString(n1 -> nomChamp);
+	if (n1 != NULL) afficherString(n1 -> valeurChamp);
+
+	
 	
 	return 0;
 }
