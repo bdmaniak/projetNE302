@@ -500,7 +500,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 	if (i == j){
 		
 		string *mot = recupereMot(ligne, i, grammaire);
-		afficherString(mot);
+		//afficherString(mot);
 
 		if (compareChaineStr(mot, "ALPHA")){
 			n1 = ALPHA (grammaire, lu, indice);
@@ -530,10 +530,12 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 			line = rechercheString(mot, grammaire);
 			dernierElement = IndiceDernierElement(line, grammaire);
 			printf("OK\n");
-			n1 = malloc(sizeof(noeud));
-			n1 -> nomChamp = recupereMot(line, 0, grammaire);
-			ajouteFils(n1, (n2 = creerArbre(grammaire, lu, indice, line, 2, dernierElement)));
-			n1 -> valeurChamp = creerString(lu, indiceBis, tailleNoeud(n2));
+			if ((n2 = creerArbre(grammaire, lu, indice, line, 2, dernierElement)) != NULL){
+				n1 = malloc(sizeof(noeud));
+				n1 -> nomChamp = recupereMot(line, 0, grammaire);
+				ajouteFils(n1, n2);
+				n1 -> valeurChamp = creerString(lu, indiceBis, tailleNoeud(n2));
+			}
 			
 	
 
@@ -558,23 +560,19 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 			if ((compareChaineStr(mot, "/")) && (compteur == 0)){
 				//A verifier
 				continuer = 0;
-				printf("i:%d	,k:%d	,j:%d\n",i,k,j);
+				
 				if ((n1 = creerArbre(grammaire, lu, indice, ligne, i, k-1)) == NULL){
-					printf("n1 : %p\n", n1);
+					
 					n1 = creerArbre(grammaire, lu, indice, ligne, k + 1, j);
 				}
-				printf("n1 : %p\n", n1);
 				
-
 			}
-			
-
-
 
 			k++;
 
-
 		}
+
+		//Gerer '(', '[', nombre entier, '*' et les espaces
 
 
 
@@ -735,7 +733,7 @@ int main() {
 	lu = fopen("test.txt", "r");
 
 	noeud *n1;
-	n1 = creerArbre(grammaire,lu, &indice, 7, 0, 0);
+	n1 = creerArbre(grammaire,lu, &indice, 8, 0, 0);
 	//if (n1 != NULL) afficherString(n1 -> nomChamp);
 	//if (n1 != NULL) afficherString(n1 -> valeurChamp);
 	//if ((n1->fils) != NULL)afficherString((n1 -> fils) -> nomChamp);

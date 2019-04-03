@@ -5,10 +5,11 @@ DIGIT casdebase
 ALPHA casdebase
 case_insensitive_string casdebase
 valAscii casdebase
-test4 = "." / "/" / "+"
-test1 = test2 / test3
+test4 = "" / "+"
+test1 = test2 / test3 / test5
 test2 = ALPHA
 test3 = DIGIT
+test5 = "+"
 URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 hier-part = "//" authority path-abempty / path-absolute / path-rootless / path-empty
 URI-reference = URI / relative-ref
