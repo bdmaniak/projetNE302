@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <math.h>
 #include "api.h"
 
 
@@ -144,6 +145,24 @@ int rechercheMot(char *mot, FILE *fic){
 
 }
 
+int rechercheString(string *mot, FILE *fic){
+
+	int indice = 0;
+	string *st = NULL;
+	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareString(st, mot))){
+		indice++;
+		
+	}
+	
+	if (!compareString(st, mot)) indice = -1;
+
+	return indice;
+
+
+
+}
+
+
 
 noeud *SP (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
@@ -213,20 +232,18 @@ noeud *ALPHA (FILE *grammaire, FILE *lu, int *indice){
 
 
 
-noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, char *mot){
+noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, string *element){
 	noeud *n1;
 	n1 = NULL;
 	string *s1;
 	s1 = recupereMot(rechercheMot("case_insensitive_string", grammaire), 0, grammaire);
-	int taille = strlen(mot);
+	int taille = element -> taille - 2;
 	string *s2 = creerString(lu, *indice, taille); 
 	int correct = 1;
 	int i = 0;
 	while ((i < taille) && (correct) && (lire(lu, (*indice) + i) != EOF) ){
-		printf("lu: %x		,mot: %x\n",lire(lu, (*indice) + i), mot[i]);
-		if (lire(lu, (*indice) + i) != mot[i]) correct = 0;
+		if (lire(lu, (*indice) + i) != recupChar(element, i + 1)) correct = 0;
 		else i++;
-		printf("i: %d\n", i);
 
 	}
 	if (i == taille){
@@ -235,9 +252,101 @@ noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, char *mot){
 		(*indice) += taille;
 
 	}
+
+
+
 	return n1;
 
 }
+
+
+char convAscii (char hexa[3]){
+
+	char c = 0;
+	int i = 0;	
+	for (i = 0; i<2; i++){
+		if ((hexa[i] >= 65) && (hexa[i] <= 70)) hexa[i] = hexa[i] - 55;
+		else hexa[i] = hexa[i] - 48;
+		c += hexa[i] * pow(16,1-i);
+	}
+
+	return c;
+
+
+}
+
+
+
+noeud *valAscii (FILE *grammaire, FILE *lu, int *indice, string *element){
+	
+	noeud *n1;
+	n1 = NULL;
+	string *s1;
+	s1 = recupereMot(rechercheMot("valAscii", grammaire), 0, grammaire);
+	string *s2 = NULL;
+	int taille = element -> taille;
+	int tailleAscii = 0;
+	int correct = 1;
+	char val[3];
+	char val2[3];
+	char valeur;
+	char valeur2 = 0;
+	char caractereLu = lire(lu, (*indice)); 
+	val[0] = recupChar(element, 2);
+	val[1] = recupChar(element, 3);
+	val[2] = '\0';
+	valeur = convAscii(val);
+	 
+	
+	//Si %A
+	if (taille == 4){
+
+		tailleAscii = 1;
+		if ( caractereLu != valeur) correct = 0;
+		
+
+	}
+	//si %xA-B
+	else if ((taille == 7) && (recupChar(element, 4) == '-')){
+		tailleAscii = 1;
+		val2[0] = recupChar(element, 5);
+		val2[1] = recupChar(element, 6);
+		val2[2] = '\0';
+		valeur2 = convAscii(val2);
+		if((caractereLu < valeur) || (caractereLu > valeur2)) correct = 0;
+	}
+	//si %xA.B.C.D.E ...
+	else if (taille >= 7){
+		tailleAscii = (taille - 1)/3;
+		for (int i = 0; (i < tailleAscii) && (correct) ; i++){
+			val[0] = recupChar(element, 2 + 3*i);
+			val[1] = recupChar(element, 3 + 3*i);
+			valeur = convAscii(val);
+			if (valeur != lire(lu, (*indice + i))) correct = 0;
+
+
+		}
+
+
+	}
+	else{
+		
+		correct = 0;
+
+	}
+
+	if (correct) {
+		s2 = creerString(lu, *indice, tailleAscii); 
+		n1 = creerNoeud(s1, s2);
+		(*indice) += tailleAscii;
+
+
+	}
+
+	return n1;
+
+}
+
 
 
 
@@ -287,7 +396,7 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 			chaine = malloc(sizeof(string));
 			chaine->fichier = fic;
 			chaine->depart = ligne + curseur;
-			while (((c = getc(fic)) != ' ') && (c != '\0')) {
+			while (((c = getc(fic)) != ' ') && (c != '\n') && (c != '\0')) {
 				taille ++;
 			}
 			chaine->taille = taille + 1;
@@ -361,17 +470,42 @@ int verifieFormat(string recu, string grammaire) {
 noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int j){
 
 	noeud *n1 = NULL;
-	noeud *n2 = NULL;	
+	noeud *n2 = NULL;
+	int line = 0;	
 
 	//Cas de base
 	if (i == j){
+		
+		string *mot = recupereMot(ligne, i, grammaire);
+		afficherString(mot);
 
-		if ((compareChaineStr(recupereMot(ligne, i, grammaire), "ALPHA")) && ((n2 = ALPHA (grammaire, lu, indice)) != NULL)){
+		if ((compareChaineStr(mot, "ALPHA")) && ((n2 = ALPHA (grammaire, lu, indice)) != NULL)){
 			n1 = n2;	
 		}
-		if ((compareChaineStr(recupereMot(ligne, i, grammaire), "DIGIT")) && ((n2 = DIGIT(grammaire, lu, indice)) != NULL)){
+		else if ((compareChaineStr(mot, "DIGIT")) && ((n2 = DIGIT(grammaire, lu, indice)) != NULL)){
 			n1 = n2;	
 		}
+		else if ((compareChaineStr(mot, "HTAB")) && ((n2 = HTAB(grammaire, lu, indice)) != NULL)){
+			n1 = n2;	
+		}
+		else if ((compareChaineStr(mot, "SP")) && ((n2 = SP(grammaire, lu, indice)) != NULL)){
+			n1 = n2;	
+		}
+		else if ((recupChar(mot,0) == '"') && ((n2 = caseInsensitive (grammaire, lu, indice, mot)) != NULL)){
+			n1 = n2;	
+		}
+		else if ((recupChar(mot,0) == '%') && ((n2 = valAscii(grammaire, lu, indice, mot)) != NULL)){
+			n1 = n2;
+		}
+		else{
+			line = rechercheString(mot, grammaire);
+			printf("Ligne: %d\n", line);
+
+
+
+		}
+
+		//Gerer les guillement et les %
 
 
 	}
@@ -515,7 +649,7 @@ int main() {
 	lu = fopen("test.txt", "r");
 
 	noeud *n1;
-	n1 = creerArbre(grammaire,lu, &indice, 12, 2, 2);
+	n1 = creerArbre(grammaire,lu, &indice, 78, 2, 2);
 	if (n1 != NULL) afficherString(n1 -> nomChamp);
 	if (n1 != NULL) afficherString(n1 -> valeurChamp);
 
