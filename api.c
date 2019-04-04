@@ -88,20 +88,26 @@ int tailleNoeud (noeud *n1){
 }
 
 
-noeud *etoile(noeud *(*fonction)(char *, int *), char *chaine, int *indice, int i, int j){
+noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2){
 
 
-	if (j == 0) j = 10000000;
+	if (borne2 == 0) borne2 = 10000000;
 	int compteur = 0;
 	noeud *nfils, *nfrere;
 	nfils = NULL;
-	nfils = fonction(chaine, indice);
+	nfils = fonction(grammaire, lu, indice, ligne, i, j);
+	if (nfils != NULL) compteur++;
 	
-	while ((nfils != NULL) && ((nfrere = fonction(chaine, indice)) != NULL) && (compteur < j)){
+	
+	while ((nfils != NULL) && (compteur < borne2) && ((nfrere = fonction(grammaire, lu, indice, ligne, i, j)) != NULL)){
+		
 		ajouteFrere(nfils, nfrere);
 		compteur++;
 	}
-	if ((compteur < i) || (compteur > j)){
+
+	
+	if ((compteur < borne1) || (compteur > borne2)){
+
 		nfils = NULL;
 		//Fonction qui supprime tout
 
@@ -529,7 +535,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 		else{
 			line = rechercheString(mot, grammaire);
 			dernierElement = IndiceDernierElement(line, grammaire);
-			printf("OK\n");
+			
 			if ((n2 = creerArbre(grammaire, lu, indice, line, 2, dernierElement)) != NULL){
 				n1 = malloc(sizeof(noeud));
 				n1 -> nomChamp = recupereMot(line, 0, grammaire);
@@ -553,7 +559,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 		int compteur = 0;
 		string *mot = NULL;
 
-		while ((k < j) && continuer){
+		while ((k <= j) && continuer){
 			mot = recupereMot(ligne, k, grammaire);
 			if (compareChaineStr(mot, "(")) compteur ++;
 			if (compareChaineStr(mot, ")")) compteur ++;
@@ -572,8 +578,62 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 		}
 
-		//Gerer '(', '[', nombre entier, '*' et les espaces
+		//Gerer '(', '[', nombre entier, '*' et les espaces (peut être penser à utiliser la variable continuer)
 
+		k = i;
+		int ainee = 0;
+		int borne1 = 0;
+		int borne2 = 0;
+		char c;
+
+		while ((k <= j) && continuer){
+			
+			//Mettre des * ... et le cas suivant en else
+			mot = recupereMot(ligne, k, grammaire);
+			borne1 = 0;
+			borne2 = 0;
+			
+			if ((recupChar(mot, 0) == '*')||(recupChar(mot, 1) == '*')){
+				if (isdigit((c = recupChar(mot, 0)))) borne1 = c - 48;
+				if ((recupChar(mot, 0) == '*') && (isdigit(c = recupChar(mot, 1)))) borne2 = c - 48;
+				if ((recupChar(mot, 1) == '*') && (isdigit(c = recupChar(mot, 2)))) borne2 = c - 48;
+				
+				if (!ainee){
+					n1 = etoile(creerArbre,grammaire,lu, indice, ligne, k+1 , k+1, borne1, borne2);
+					ainee = 1;
+				}
+				else if ((n2 = etoile(creerArbre,grammaire,lu, indice, ligne, k+1 , k+1, borne1, borne2)) != NULL){
+					ajouteFrere(n1, n2);
+
+				}
+				else continuer = 0;
+				k += 2;
+			
+
+			}
+
+
+
+
+
+
+
+			else{
+				if (!ainee){
+					n1 = creerArbre(grammaire, lu, indice, ligne, k, k);
+					ainee = 1;
+				}
+				else if ((n2 = creerArbre(grammaire, lu, indice, ligne, k, k)) != NULL){
+					ajouteFrere(n1, n2);
+
+				}
+				else continuer = 0;
+
+			}
+			k++;
+			
+
+		}
 
 
 
@@ -733,10 +793,10 @@ int main() {
 	lu = fopen("test.txt", "r");
 
 	noeud *n1;
-	n1 = creerArbre(grammaire,lu, &indice, 8, 0, 0);
+	n1 = creerArbre(grammaire,lu, &indice, 11, 0, 0);
 	//if (n1 != NULL) afficherString(n1 -> nomChamp);
 	//if (n1 != NULL) afficherString(n1 -> valeurChamp);
-	//if ((n1->fils) != NULL)afficherString((n1 -> fils) -> nomChamp);
+	//if (((n1->fils)!= NULL) && ((n1->fils)->frere != NULL))afficherString(((n1 -> fils) -> frere) -> nomChamp);
 	afficherArbreBasic(n1);
 	
 	
