@@ -4,14 +4,15 @@ HTAB casdebase
 DIGIT casdebase
 ALPHA casdebase
 case_insensitive_string casdebase
+CRLF casdebase
 valAscii casdebase
 test4 = "" / "+"
 test1 = test2 / test3 / test5
 test2 = ALPHA
+test8 = method SP request-target
 test3 = DIGIT
-test8 = *5 test2
 test5 = "+"
-test6 = test3 test2
+test6 = test2
 URI = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
 hier-part = "//" authority path-abempty / path-absolute / path-rootless / path-empty
 URI-reference = URI / relative-ref
