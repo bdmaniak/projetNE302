@@ -1,3 +1,7 @@
+#ifndef API_H
+#define API_H
+
+
 typedef struct String {
 	FILE * fichier;
 	int depart;
@@ -76,3 +80,6 @@ void afficherString(string *chaine);
 int verifieFormat(string recu, string grammaire);
 
 noeud *creerArbreV2 (/*FILE *recu, */FILE *grammaire, noeud *n1);
+
+
+#endif

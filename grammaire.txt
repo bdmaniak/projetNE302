@@ -6,10 +6,15 @@ ALPHA casdebase
 case_insensitive_string casdebase
 CRLF casdebase
 valAscii casdebase
+HEXDIG casdebase
+DQUOTE casdebase
+VCHAR casdebase
+CHAR casedebase
+OCTET casdebase
 test4 = "" / "+"
 test1 = test2 / test3 / test5
 test2 = ALPHA
-test8 = method SP request-target
+test8 = HTTP-message
 test3 = DIGIT
 test5 = "+"
 test6 = test2

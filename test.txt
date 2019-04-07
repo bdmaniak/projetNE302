@@ -1,1 +1,1 @@
-Transfer-Encoding: gzip
+GET / HTTP/1.0
