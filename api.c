@@ -67,7 +67,7 @@ int main() {
 	lu = fopen("test.txt", "r");
 
 	noeud *n1;
-	n1 = creerArbre(grammaire,lu, &indice, 16, 0, 0);
+	n1 = creerArbre(grammaire,lu, &indice, 0, 0, 0);
 
 	afficherArbreBasic(n1);
 	

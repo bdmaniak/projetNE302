@@ -451,15 +451,17 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 	int continuer = 1;
 	int l = 0;
 
-	printf("i: %d	,j: %d\n",i,j);
-	
+
+
+		
+
 	//Cas de base
 	if (i == j){
 
 
 		
 		string *mot = recupereMot(ligne, i, grammaire);
-		//afficherString(mot);
+
 
 
 		if (compareChaineStr(mot, "ALPHA")){
@@ -552,12 +554,11 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 		while ((l <= j) && continuer){
 			mot = recupereMot(ligne, l, grammaire);
 			if (compareChaineStr(mot, "(")) compteur ++;
-			if (compareChaineStr(mot, ")")) compteur ++;
+			if (compareChaineStr(mot, ")")) compteur --;
 			if ((compareChaineStr(mot, "/")) && (compteur == 0)){
 
 				continuer = 0;
 				
-
 				if ((n1 = creerArbre(grammaire, lu, indice, ligne, i, l-1)) == NULL){
 					
 					
@@ -582,7 +583,6 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 		while ((k <= j) && continuer){
 
 			
-
 
 
 			mot = recupereMot(ligne, k, grammaire);
@@ -616,7 +616,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 					compteur = 1;
 					k = k + 2;
 					debut = k;
-
+					
 				
 				
 					while (compteur != 0){
@@ -631,6 +631,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 					}					
 					fin = k-2;
+					
 					k--;
 
 
@@ -643,8 +644,8 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 				}
 
-
 				n2 = etoile(creerArbre,grammaire,lu, indice, ligne, debut , fin, borne1, borne2);
+				
 
 
 
@@ -664,7 +665,6 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 					debut = k;
 
 				
-				
 					while (compteur != 0){
 					
 						mot = recupereMot(ligne, k, grammaire);
@@ -678,12 +678,16 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 					}					
 					fin = k-2;
+					k--;
+
+					n2 = creerArbre(grammaire, lu, indice, ligne, debut, fin);
 					
 
 
 
 				}
 				else if (compareChaineStr(recupereMot(ligne, k, grammaire),"[")){
+
 
 					compteur = 1;
 
@@ -705,6 +709,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 					}					
 					fin = k-2;
+					k--;
 					n2 = etoile(creerArbre, grammaire, lu, indice, ligne, debut, fin, 0, 1);
 					
 
