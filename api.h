@@ -57,29 +57,6 @@ void purgeTree(void *root);
 int parseur(char *req, int len);
 
 
-// Ce que l'on a ajouté comme fonctions
-
-//Permet de faire pointer le curseur de fichier à la n-ième ligne
-int pointeurLigne(FILE *fic, int n);
-
-//Permet de recuperer le n-ieme mot sur la ligne de notre choix
-string *recupereMot(int ligne, int n, FILE *fic);
-
-// Recupere le n-ieme caractere d'un element string
-char recupChar(string *chaine, int n);
-
-//compare un string avec une chaine de caractere
-int compareChaineStr(string *s1, char *chaine);
-
-//Compare deux string
-int compareString(string *s1, string *s2);
-
-// Affiche un string
-void afficherString(string *chaine);
-
-int verifieFormat(string recu, string grammaire);
-
-noeud *creerArbreV2 (/*FILE *recu, */FILE *grammaire, noeud *n1);
 
 
 #endif
