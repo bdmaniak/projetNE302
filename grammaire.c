@@ -452,7 +452,6 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 	int l = 0;
 
 
-
 		
 
 	//Cas de base
