@@ -20,11 +20,7 @@
 
 
 
-void *getRootTree() {
-
-	
-
-}
+void *getRootTree;
 
 
 
@@ -135,9 +131,17 @@ void purgeTree(void *root) {
 
 int parseur(char *req, int len){
 
-	
 
+	FILE *requete;
+	FILE *grammaire;
+	requete = fopen("requete.txt","w+");
+	grammaire = fopen("grammaire.txt","r");
 
+	int indice = 0;
+	fprintf(requete, "%s", req);
+	getRootTree = creerArbre(grammaire, requete, &indice, 0, 0, 0);
+
+	return 0;
 
 
 }
@@ -147,18 +151,24 @@ int parseur(char *req, int len){
 
 int main() {
 	
-	FILE *grammaire;
-	FILE *lu;
+	//FILE *grammaire;
+	//FILE *lu;
 	int indice = 0;
-	grammaire = fopen("grammaire.txt", "r");
+	char req[]="GET / HTTP/1.0\r\nHost: www.google.com\r\nTransfer-Encoding: gzip\r\n\r\n";
+	//grammaire = fopen("grammaire.txt", "r");
 
-	lu = fopen("test.txt", "r");
+	//lu = fopen("test.txt", "r");
 
-	noeud *n1;
-	n1 = creerArbre(grammaire,lu, &indice, 0, 0, 0);
+	//noeud *n1;
+	//n1 = creerArbre(grammaire,lu, &indice, 0, 0, 0);
+	printf("OK1\n");
+	if (parseur(req, 15) == -1){
+		exit(1);
+	}
+	printf("OK2\n");
 
 	_Token *t1;
-	t1 = searchTree(n1, "case_insensitive_string");
+	t1 = searchTree(getRootTree, "case_insensitive_string");
 	printf("ALPHA :%p\n",t1);
 	noeud *n2;
 	int *len = malloc(sizeof(int));
@@ -172,8 +182,9 @@ int main() {
 		t1 = t1 -> next;
 	}
 
-	afficherArbreBasic(n1);
-	
+	afficherArbreBasic(getRootTree);
+	//fclose(grammaire);
+	//fclose(lu);
 	
 	return 0;
 }

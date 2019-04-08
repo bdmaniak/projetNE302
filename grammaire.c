@@ -235,11 +235,11 @@ noeud *CRLF (FILE *grammaire, FILE *lu, int *indice){
 	n1 = NULL;
 	string *s1;
 	s1 = recupereMot(rechercheMot("CRLF", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1); 
-	if (lire(lu, *indice) == '\n'){
+	string *s2 = creerString(lu, *indice, 2); 
+	if ((lire(lu, *indice) == '\r')&&(lire(lu, (*indice)+1) == '\n')){
 		
 		n1 = creerNoeud(s1, s2);
-		(*indice)++;
+		(*indice) += 2;
 
 	}
 	return n1;
@@ -460,6 +460,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 		
 		string *mot = recupereMot(ligne, i, grammaire);
+
 
 
 
