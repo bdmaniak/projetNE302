@@ -9,6 +9,7 @@ typedef struct String {
 } string;
 
 
+
 typedef struct Arbre {
   struct Arbre *fils; //Tableau de pointeurs vers les fils
   struct Arbre *frere;

@@ -27,6 +27,7 @@ void *getRootTree() {
 }
 
 
+
 _Token *searchTree(void *start,char *name) {
 
 	static _Token *t1 = NULL;
@@ -34,10 +35,7 @@ _Token *searchTree(void *start,char *name) {
 	noeud *n1 = start;
 	static int depart = 0;
 
-	//TEST
-	static int numFils = 0;
-	int numFrere = 0;
-	numFils ++;
+
 	
 
 	while (n1 != NULL){
@@ -71,7 +69,7 @@ _Token *searchTree(void *start,char *name) {
 		}
 		debut = searchTree(n1->fils, name);
 		n1 = n1 -> frere;
-		numFrere++;
+
 
 
 	}
@@ -84,11 +82,40 @@ _Token *searchTree(void *start,char *name) {
 
 char *getElementTag(void *node,int *len) {
 
+	
+	noeud *n1 = node;
+	char *valeur = NULL;
+	int taille = 0;
+	if (n1 != NULL){
+		taille = (n1->nomChamp)->taille;
+		if (len != NULL) *len = taille;
+		valeur = malloc(taille*sizeof(char));
+		for (int i=0; i < taille; i++){
+			valeur[i] = lire((n1->nomChamp)->fichier, (n1->nomChamp)->depart + i);
+
+		}
+	}
+	return valeur;
+
 
 }
 
 
 char *getElementValue(void *node,int *len) {
+
+	noeud *n1 = node;
+	char *valeur = NULL;
+	int taille = 0;
+	if (n1 != NULL){
+		taille = (n1->valeurChamp)->taille;
+		if (len != NULL) *len = taille;
+		valeur = malloc(taille*sizeof(char));
+		for (int i=0; i < taille; i++){
+			valeur[i] = lire((n1->valeurChamp)->fichier, (n1->valeurChamp)->depart + i);
+
+		}
+	}
+	return valeur;
 
 
 }
@@ -101,6 +128,16 @@ void purgeElement(_Token **r) {
 
 
 void purgeTree(void *root) {
+
+
+}
+
+
+int parseur(char *req, int len){
+
+	
+
+
 
 
 }
@@ -124,9 +161,14 @@ int main() {
 	t1 = searchTree(n1, "case_insensitive_string");
 	printf("ALPHA :%p\n",t1);
 	noeud *n2;
+	int *len = malloc(sizeof(int));
+	*len = 0;
 	while (t1 != NULL){
 		n2 = t1 -> node;
-		afficherString(n2->valeurChamp);
+		printf("nom: %s\n",getElementTag(n2, len));
+		
+		printf("valeur: %s\n",getElementValue(n2, len));
+		printf("taille: %d\n", *len);
 		t1 = t1 -> next;
 	}
 
