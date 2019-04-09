@@ -158,7 +158,7 @@ void afficherArbreBasic(noeud *n1){
 
 
 void afficherArbre(noeud *n1){
-	if((n1->nomChamp == NULL)||(n1->valeurChamp == NULL)){
+	if((n1 == NULL) || (n1->nomChamp == NULL)||(n1->valeurChamp == NULL)){
 		printf("ERREUR : Noeud inexistant\n");
 		exit(-1);
 	}
