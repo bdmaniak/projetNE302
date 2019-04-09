@@ -1,17 +1,20 @@
+CC = gcc
+CFLAGS = -Wall -g
+
 all: api monsieurpropre
 
 
 api: api.o grammaire.o lecture.o
-	gcc -Wall -g -o api api.o grammaire.o lecture.o -lm
+	$(CC) $(CFLAGS) -o api api.o grammaire.o lecture.o -lm
 
 api.o: api.c grammaire.h lecture.h
-	gcc -Wall -g -c api.c
+	$(CC) $(CFLAGS) -c api.c
 
 grammaire.o: grammaire.c api.h lecture.h
-	gcc -Wall -g -c grammaire.c
+	$(CC) $(CFLAGS) -c grammaire.c
 
 lecture.o: lecture.c grammaire.h api.h
-	gcc -Wall -g -c lecture.c
+	$(CC) $(CFLAGS) -c lecture.c
 
 clean:
 	rm api

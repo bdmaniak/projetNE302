@@ -11,56 +11,32 @@
 int curseurLigne[300] = {[0 ... 299] = -1};
 
 
-
 char lire (FILE *lu, int indice){
 	fseek(lu, indice, SEEK_SET);
 	return getc(lu);
-
 }
 
 
-
-
 int rechercheMot(char *mot, FILE *fic){
-
 	int indice = 0;
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareChaineStr(st, mot))){
 		indice++;
-
 	}
-
 	if (!compareChaineStr (st, mot)) indice = -1;
-
 	return indice;
-
-
-
 }
 
-int rechercheString(string *mot, FILE *fic){
 
+int rechercheString(string *mot, FILE *fic){
 	int indice = 0;
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareString(st, mot))){
 		indice++;
-
 	}
-
 	if (!compareString(st, mot)) indice = -1;
-
 	return indice;
-
-
-
 }
-
-
-
-
-
-
-
 
 
 //Permet de faire pointer le curseur de fichier à la n-ième ligne
@@ -69,7 +45,6 @@ int pointeurLigne (FILE *fic, int n) {
 	int curseur = 0;
 	char c;
 	rewind(fic);
-
 	if (curseurLigne[n] != -1) curseur = curseurLigne[n];
 	else{
 		while (((c = getc(fic)) != '\0') && (compteur < n)) {
@@ -78,11 +53,9 @@ int pointeurLigne (FILE *fic, int n) {
 			}
 			curseur++;
 		}
-
 		if (c == '\0') curseur = -1;
 		curseurLigne[n] = curseur;
 	}
-
 	return curseur;
 }
 
@@ -94,10 +67,7 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 	int compteur = 0;
 	int taille = 0;
 	string *chaine = NULL;
-
-
 	ligne = pointeurLigne(fic,ligne);
-
 	if (ligne != -1) {
 		fseek(fic, ligne, SEEK_SET);
 		while (((c = getc(fic)) != '\0') && (c != '\n') && (compteur < n)) {
@@ -106,16 +76,13 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 			}
 			curseur++;
 		}
-
 		if ((c != '\0') && (c != '\n')) {
-
 			chaine = malloc(sizeof(string));
 			chaine->fichier = fic;
 			chaine->depart = ligne + curseur;
 			while (((c = getc(fic)) != ' ') && (c != '\n') && (c != '\0')) {
 				taille ++;
 			}
-
 			chaine->taille = taille + 1;
 		}
 	}
@@ -123,19 +90,15 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 }
 
 
-
 // Recupere le n-ieme caractere d'un element string
 char recupChar (string *chaine, int n) {
-
 	fseek(chaine->fichier, chaine->depart + n, SEEK_SET);
 	return getc(chaine->fichier);
-
 }
 
 
 //compare un string avec une chaine de caractere
 int compareChaineStr (string *s1, char *chaine) {
-
 	int taille = 0;
 	int i = 0;
 	int egal = 1;
@@ -143,78 +106,54 @@ int compareChaineStr (string *s1, char *chaine) {
 		taille ++;
 	}
 	if (s1 -> taille != taille ) egal = 0;
-
 	while ((i < s1->taille) && egal){
 		if (recupChar(s1, i) != chaine[i]) egal = 0;
 		i++;
 	}
-
 	return egal;
 }
+
 
 //Compare deux string
 int compareString(string *s1, string *s2) {
 	int egal = 1;
 	int i = 0;
-
 	if (s1 -> taille != s2 -> taille ) egal = 0;
 	while ((i < s1->taille) && egal) {
 		if (recupChar(s1, i) != recupChar(s2, i)) egal = 0;
 		i++;
 	}
-
 	return egal;
 }
 
+
 // Affiche un string
 void afficherString(string *chaine) {
-
 	if (chaine != NULL){
 		fseek(chaine->fichier, chaine->depart, SEEK_SET);
-
 		for (int i = 0; i< chaine -> taille; i++){
 			printf("%c",getc(chaine->fichier));
 		}
-
 		printf("\n");
 	}
-
-
 }
 
 
-
 int IndiceDernierElement(int ligne, FILE *grammaire){
-
 	int compteur = 0;
 	while (recupereMot(ligne, compteur, grammaire) != NULL){
 		compteur++;
 	}
 	return (compteur - 1);
-
-
-
 }
 
 
-
-
-
-
-
-
-
-
 void afficherArbreBasic(noeud *n1){
-
 	while (n1 != NULL){
 		if (n1 != NULL) afficherString(n1 -> nomChamp);
 		if (n1 != NULL) afficherString(n1 -> valeurChamp);
 		n1 = n1 -> fils;
 	}
-
-
-
 }
 
 
@@ -230,14 +169,9 @@ void afficherArbre(noeud *n1){
 		for (int i = 0; i < decalage ; i++) printf("\t");
 		if (n1 != NULL) afficherString(n1 -> valeurChamp);
 		printf("\n");
-
 		decalage++;
 		if (n1 -> fils != NULL) afficherArbre(n1 -> fils);
 		decalage--;
 		n1 = n1->frere;
-
-
 	}
-
-
 }
