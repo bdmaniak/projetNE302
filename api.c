@@ -180,7 +180,7 @@ int main() {
 		t1 = t1 -> next;
 	}
 
-	afficherArbreBasic(getRootTree);
+	afficherArbre(getRootTree);
 	//fclose(grammaire);
 	//fclose(lu);
 	

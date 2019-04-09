@@ -216,3 +216,27 @@ void afficherArbreBasic(noeud *n1){
 
 
 }
+
+
+void afficherArbre(noeud *n1){
+
+	static int decalage = 0;
+	
+
+	while (n1 != NULL){
+		for (int i = 0; i < decalage ; i++) printf("\t");
+		if (n1 != NULL) afficherString(n1 -> nomChamp);
+		for (int i = 0; i < decalage ; i++) printf("\t");
+		if (n1 != NULL) afficherString(n1 -> valeurChamp);
+		printf("\n");
+		
+		decalage++;
+		if (n1 -> fils != NULL) afficherArbre(n1 -> fils);
+		decalage--;
+		n1 = n1->frere;
+		
+
+	}
+
+
+}

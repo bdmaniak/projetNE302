@@ -44,4 +44,7 @@ int IndiceDernierElement(int ligne, FILE *grammaire);
 //Fonction simple permettant d'afficher une partie de l'arbre
 void afficherArbreBasic(noeud *n1);
 
+
+void afficherArbre(noeud *n1);
+
 #endif
