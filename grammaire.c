@@ -85,7 +85,6 @@ noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* gramma
 	}
 	if (((compteur < borne1) || (compteur > borne2)) ){
 		nfils = NULL;
-		//Fonction qui supprime tout
 	}
 	if((borne1 == 0) && (nfils == NULL)){
 		string *s1 = recupereMot(ligne, i, grammaire);

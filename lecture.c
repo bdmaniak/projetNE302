@@ -174,4 +174,5 @@ void afficherArbre(noeud *n1){
 		decalage--;
 		n1 = n1->frere;
 	}
+
 }

@@ -74,15 +74,19 @@ void purgeElement(_Token **r) {
 }
 
 
-void purgeTree(noeud *root) {//normalement c'est un void* mais je n'y arrive pas donc je le fais en noeud*
-	if((root) != NULL){
-		if(root->frere){
-			purgeTree(root->frere);
-		}
-		if(root->fils){
-			purgeTree(root->fils);
-		}
-		free(root);
+void purgeTree(void *root) {
+
+	noeud *n1;
+	n1 = root;
+
+
+	if(n1 != NULL){
+		purgeTree(n1->frere);
+
+		purgeTree(n1->fils);
+
+		free(n1);
+
 	}
 }
 
@@ -101,23 +105,31 @@ int parseur(char *req, int len){
 
 int main() {
 	FILE *grammaire;
-	FILE *lu;
-	int indice = 0;
+	
 	char req[]="GET / HTTP/1.1\r\nHost: www.cvedetails.com\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0\r\nAccept:		 text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language:	fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3\r\nAccept-Encoding: *   ; q=0.876\r\nConnection: tryit\r\n\r\n";
 	grammaire = fopen("grammaire.txt", "r");
-	lu = fopen("test.txt", "r");
-	//noeud *n1;
-	//n1 = creerArbre(grammaire,lu, &indice, 0, 0, 0);
+	
+
+	//Si on veut tester directement une requete qui est dans un fichier
+	//FILE *lu;
+	//lu = fopen("test.txt", "r");
+	//
+	//getRootTree = creerArbre(grammaire,lu, &indice, 0, 0, 0);
+
+
+	//Appel du parseur
 	if (parseur(req, 15) == -1){
 		exit(1);
 	}
+
+	//Creer le token de tous les case_insensitive_tree
 	_Token *t1;
 	t1 = searchTree(getRootTree, "case_insensitive_string");
-	printf("ALPHA :%p\n",t1);
 	noeud *n2;
-	_Token *t2 = t1;
 	int *len = malloc(sizeof(int));
 	*len = 0;
+
+	//Permet d'affichr chaque element du token avec son nom, sa valeur et sa taille
 	while (t1 != NULL){
 		n2 = t1 -> node;
 		printf("nom: %s\n",getElementTag(n2, len));
@@ -125,10 +137,15 @@ int main() {
 		printf("taille: %d\n", *len);
 		t1 = t1 -> next;
 	}
+
+	//Affiche l'arbre puis libère la mémoire
 	afficherArbre(getRootTree);
+	printf("Appel à la fonction purgeTree ...\n\n");
 	purgeTree(getRootTree);
+	getRootTree = NULL; 	//Seul le noeud racine reste afficher si l'on rajoute pas cette ligne.
+	printf("Affichage de l'arbre ...\n");
 	afficherArbre(getRootTree);
 	fclose(grammaire);
-	fclose(lu);
+	//fclose(lu);
 	return 0;
 }

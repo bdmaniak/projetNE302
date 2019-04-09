@@ -31,6 +31,8 @@ typedef struct _token {
 } _Token;
 
 
+/* IMPORTANT: Nous avons remplacer void *getRootTree() par void *getRootTree car sans argument on ne peut pas faire grand chose
+et la deuxième formulation est plus adapté pour pointé un element de l'arbre*/
 
 // Pointeur (type opaque) vers la racine de l'arbre construit.
 void *getRootTree;
@@ -52,7 +54,7 @@ char *getElementValue(void *node,int *len);
 void purgeElement(_Token **r);
 
 // Fonction qui supprime et libere toute la mémoire associée à l'arbre .
-void purgeTree(noeud *root);//normalement void*
+void purgeTree(void *root);//normalement void*
 
 // L'appel à votre parser un char* et une longueur à parser.
 int parseur(char *req, int len);
