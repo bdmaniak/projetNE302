@@ -27,9 +27,9 @@ int rechercheMot(char *mot, FILE *fic){
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareChaineStr(st, mot))){
 		indice++;
-		
+
 	}
-	
+
 	if (!compareChaineStr (st, mot)) indice = -1;
 
 	return indice;
@@ -44,9 +44,9 @@ int rechercheString(string *mot, FILE *fic){
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareString(st, mot))){
 		indice++;
-		
+
 	}
-	
+
 	if (!compareString(st, mot)) indice = -1;
 
 	return indice;
@@ -69,7 +69,7 @@ int pointeurLigne (FILE *fic, int n) {
 	int curseur = 0;
 	char c;
 	rewind(fic);
-	
+
 	if (curseurLigne[n] != -1) curseur = curseurLigne[n];
 	else{
 		while (((c = getc(fic)) != '\0') && (compteur < n)) {
@@ -108,14 +108,14 @@ string *recupereMot (int ligne, int n, FILE *fic) {
 		}
 
 		if ((c != '\0') && (c != '\n')) {
-			
+
 			chaine = malloc(sizeof(string));
 			chaine->fichier = fic;
 			chaine->depart = ligne + curseur;
 			while (((c = getc(fic)) != ' ') && (c != '\n') && (c != '\0')) {
 				taille ++;
 			}
-			
+
 			chaine->taille = taille + 1;
 		}
 	}
@@ -212,29 +212,30 @@ void afficherArbreBasic(noeud *n1){
 		if (n1 != NULL) afficherString(n1 -> valeurChamp);
 		n1 = n1 -> fils;
 	}
-		
+
 
 
 }
 
 
 void afficherArbre(noeud *n1){
-
+	if((n1->nomChamp == NULL)||(n1->valeurChamp == NULL)){
+		printf("ERREUR : Noeud inexistant\n");
+		exit(-1);
+	}
 	static int decalage = 0;
-	
-
 	while (n1 != NULL){
 		for (int i = 0; i < decalage ; i++) printf("\t");
 		if (n1 != NULL) afficherString(n1 -> nomChamp);
 		for (int i = 0; i < decalage ; i++) printf("\t");
 		if (n1 != NULL) afficherString(n1 -> valeurChamp);
 		printf("\n");
-		
+
 		decalage++;
 		if (n1 -> fils != NULL) afficherArbre(n1 -> fils);
 		decalage--;
 		n1 = n1->frere;
-		
+
 
 	}
 

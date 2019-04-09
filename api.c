@@ -8,34 +8,16 @@
 #include "lecture.h"
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 _Token *searchTree(void *start,char *name) {
 
 	static _Token *t1 = NULL;
 	static _Token *debut = NULL;
 	noeud *n1 = start;
 	static int depart = 0;
-
-
-	
-
 	while (n1 != NULL){
 
 
-	
+
 		if (compareChaineStr(n1->nomChamp,name)){
 
 
@@ -43,7 +25,7 @@ _Token *searchTree(void *start,char *name) {
 				t1 = malloc(sizeof(_Token));
 				t1 -> node = n1;
 
-			
+
 				debut = t1;
 				depart = 1;
 
@@ -51,13 +33,13 @@ _Token *searchTree(void *start,char *name) {
 			else{
 				t1 -> next = malloc(sizeof(_Token));
 				t1 = t1 -> next;
-				t1 -> node = n1; 
+				t1 -> node = n1;
 
 
 			}
-			
 
-			
+
+
 
 
 		}
@@ -76,7 +58,7 @@ _Token *searchTree(void *start,char *name) {
 
 char *getElementTag(void *node,int *len) {
 
-	
+
 	noeud *n1 = node;
 	char *valeur = NULL;
 	int taille = 0;
@@ -116,14 +98,23 @@ char *getElementValue(void *node,int *len) {
 
 
 void purgeElement(_Token **r) {
-
-
+	if((*r)->next){
+		purgeElement(&(*r)->next);
+	}
+	free(*r);
 }
 
 
-void purgeTree(void *root) {
-
-
+void purgeTree(noeud *root) {//normalement c'est un void* mais je n'y arrive pas donc je le fais en noeud*
+	if(root){
+		if(root->frere){
+			purgeTree(root->frere);
+		}
+		if(root->fils){
+			purgeTree(root->fils);
+		}
+		free(root);
+	}
 }
 
 
@@ -148,7 +139,7 @@ int parseur(char *req, int len){
 
 
 int main() {
-	
+
 	//FILE *grammaire;
 	//FILE *lu;
 	int indice = 0;
@@ -169,20 +160,21 @@ int main() {
 	t1 = searchTree(getRootTree, "case_insensitive_string");
 	printf("ALPHA :%p\n",t1);
 	noeud *n2;
+	_Token *t2 = t1;
 	int *len = malloc(sizeof(int));
 	*len = 0;
 	while (t1 != NULL){
 		n2 = t1 -> node;
-		//printf("nom: %s\n",getElementTag(n2, len));
-		
-		//printf("valeur: %s\n",getElementValue(n2, len));
-		//printf("taille: %d\n", *len);
+		printf("nom: %s\n",getElementTag(n2, len));
+		printf("valeur: %s\n",getElementValue(n2, len));
+		printf("taille: %d\n", *len);
 		t1 = t1 -> next;
 	}
-
+	afficherArbre(getRootTree);
+	purgeTree(getRootTree);
 	afficherArbre(getRootTree);
 	//fclose(grammaire);
 	//fclose(lu);
-	
+
 	return 0;
 }
