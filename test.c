@@ -12,9 +12,8 @@ int main(int argc, char *argv[]) {
 
   if (parseur(req,strlen(req))) {
     _Token *r,*tok;
-    void *root;
-    root=getRootTree();
-    r=searchTree(root,argv[1]);
+
+    r=searchTree(getRootTree,argv[1]);
     tok=r;
 
     while (tok) {
@@ -26,7 +25,7 @@ int main(int argc, char *argv[]) {
     }
 
     purgeElement(&r);
-    purgeTree(root);
+    purgeTree(getRootTree);
   } else {
     return 0;
   }
