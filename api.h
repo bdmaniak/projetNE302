@@ -32,7 +32,7 @@ typedef struct _token {
 
 
 
-// Fonction qui retourne un pointeur (type opaque) vers la racine de l'arbre construit.
+// Pointeur (type opaque) vers la racine de l'arbre construit.
 void *getRootTree;
 
 // Fonction qui recherche dans l'arbre tous les noeuds dont l'etiquette est egale à la chaine de caractères en argument.

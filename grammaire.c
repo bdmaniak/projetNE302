@@ -96,7 +96,8 @@ string *creerString(FILE *fic, int start, int size){
 }
 
 
-
+/*Permet de creer une fraterie representant une grammaire de type *, grâce à un tant que, on creer des frères tant que c'est
+possible, en s'assurant que les bornes renseigné autour de l'étoile est bien respecté*/
 noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2){
 
 
@@ -431,7 +432,10 @@ noeud *valAscii (FILE *grammaire, FILE *lu, int *indice, string *element){
 
 
 
-
+/*Cette fonction creer un sous-arbre, si la requete (dans le fichier lu) est syntaxiquement correcte par rapport à l'expression
+décrite à la ligne-ième ligne entre le i-ème mot et le j-ième mot dans grammaire.txt
+Cette fonction est recursive et traite donc des cas de base tel que ALPHA, DIGIT, les mot entre guilements, etc... qui ne sont
+pas de definition dans grammaire.txt*/
 
 noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int j){
 
@@ -454,7 +458,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 		
 
-	//Cas de base
+	//Cas de base: l'expression à analyser contient un seul élément de la grammaire, da,s ces cas on construit un noeud
 	if (i == j){
 
 
@@ -463,59 +467,73 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 
-
+		//Si ALPHA
 		if (compareChaineStr(mot, "ALPHA")){
 			
 			n1 = ALPHA (grammaire, lu, indice);
 
 		}
 
+		//Si DIGIT
 		else if (compareChaineStr(mot, "DIGIT")){
 			n1 = DIGIT(grammaire, lu, indice);
 	
 		}
 
+		//Si HTAB
 		else if (compareChaineStr(mot, "HTAB")){
 			n1 = HTAB(grammaire, lu, indice);	
 		}
 
+		//Si SP
 		else if (compareChaineStr(mot, "SP")){
 			n1 = SP(grammaire, lu, indice);	
 		}
 
+		//Si CRLF
 		else if (compareChaineStr(mot, "CRLF")){
 			n1 = CRLF(grammaire, lu, indice);	
 		}
 
+		//Si HEXDIG
 		else if (compareChaineStr(mot, "HEXDIG")){
 			n1 = HEXDIG(grammaire, lu, indice);	
 		}
 
+		//Si DQUOTE
 		else if (compareChaineStr(mot, "DQUOTE")){
 			n1 = DQUOTE(grammaire, lu, indice);	
 		}
 
+		//Si VCHAR
 		else if (compareChaineStr(mot, "VCHAR")){
 			n1 = VCHAR(grammaire, lu, indice);	
 		}
 
+
+		//Si CHAR
 		else if (compareChaineStr(mot, "CHAR")){
 			n1 = CHAR(grammaire, lu, indice);	
 		}
 
+		//Si OCTET
 		else if (compareChaineStr(mot, "OCTET")){
 			n1 = OCTET(grammaire, lu, indice);	
 		}
 
+
+		//Si mot entre guillemet
 		else if (recupChar(mot,0) == '"'){
 			n1 = caseInsensitive (grammaire, lu, indice, mot);	
 		}
 
+		//Si valeur hexadecimal après un %
 		else if (recupChar(mot,0) == '%'){
 			n1 = valAscii(grammaire, lu, indice, mot);
 		}
 
 
+		//Sinon: le mot n'est pas un cas de base et on cherche sa definition complète dans grammaire.txt et on applique creerArbre à cette expression
 		else{
 			line = rechercheString(mot, grammaire);
 			dernierElement = IndiceDernierElement(line, grammaire);
@@ -543,6 +561,9 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 	}
+
+	//Sinon notre expression est composé de plusieurs mots, dans ce cas on retourne un noeud contenant le noeud du premier
+	//mot de l'expression (l'ainée) auquel on ajoute des frères qui sont les noeuds des mots suivants.
 	else{
 
 		
@@ -551,6 +572,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 		string *mot = NULL;
 		l = i;
 
+		//On gère les / qui correspondent à un OU en gardant la priorité des parenthèses
 		while ((l <= j) && continuer){
 			mot = recupereMot(ligne, l, grammaire);
 			if (compareChaineStr(mot, "(")) compteur ++;
@@ -575,7 +597,10 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 		}
 
-
+		/*Si on a pas eu de OU (/) dans l'expression, alors on parcours l'expression et pour chaque mot on lui applique
+		la fonction creerArbre. Par contre dans le cas ou on rencontre *, on applique la fonction étoile, si on rencontre
+		une parenthese, on applique la fonction à l'expression entre parenthèse, et il en est de même pour un crochet.
+		On incremente k comme il faut de façon à ne pas traité deux fois le même élément.*/
 
 		k = i;
 		
@@ -590,7 +615,8 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 			borne1 = 0;
 			borne2 = 0;
 			
-
+			//On gère les differents type d'étoile, * , x* , *y, et x*y, de même un nombre x placé devant une
+			//expression peut être vu comme x*x. On créer ensuite le noeud associé à cette expression avec etoile.
 			
 			if ((recupChar(mot, 0) == '*')||(recupChar(mot, 1) == '*') || (isdigit(c = recupChar(mot, 0)))){
 
@@ -611,7 +637,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 				}
 
-
+				//Si on rencontre une parenthèse, on applique étoile à l'expression entre parenthèse
 				if (compareChaineStr(recupereMot(ligne, k+1, grammaire),"(")){
 					compteur = 1;
 					k = k + 2;
@@ -637,6 +663,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 				}
+				//Si il n'y a pas de parenthèse, on applique etoile au mot suivant '*'.
 				else{
 					debut = k+1;
 					fin = k+1;
@@ -656,7 +683,8 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 			else{
 
-
+				//Si il n'y a pas d'étoile, alors l'expression analyser doit être présente une seule fois
+				//Si il y a une parenthèse, on creer le noeud associé à l'expression entre parenthèse
 				if (compareChaineStr(recupereMot(ligne, k, grammaire),"(")){
 
 					compteur = 1;
@@ -686,6 +714,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 				}
+				//De même pour un crochet
 				else if (compareChaineStr(recupereMot(ligne, k, grammaire),"[")){
 
 
@@ -716,6 +745,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 				}
+				//Sinon on applique creerArbre au mot k-ième mot de la ligne-ième ligne
 				else{
 					n2 = creerArbre(grammaire, lu, indice, ligne, k, k);
 
@@ -730,7 +760,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 
 
-
+			//Si aucun noeud n'a été créé, l'expression est fausse donc on renvoie NULL
 			if (n2 == NULL){
 				continuer = 0;
 				n1 = NULL;
@@ -738,11 +768,13 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 				
 				k = j;
 			}
+			//L'ainée est le premier noeud pointé par n1, on lui associera des frères.
 			else if (!ainee){
 				n1 = n2;
 
 				ainee = 1;
 			}
+			//Si l'ainée est déjà créé, on lui associe n2 comme un frère.
 			else{
 				ajouteFrere(n1,n2);
 
@@ -765,7 +797,8 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 
 	}
 
-
+	//Si une partie de ce qui a été reçu n'est pas compatible avec la grammaire, alors on repositionne le curseur de
+	//lecture en arrière, de façon à poursuivre la construction de l'arbre au bon endroit.
 	if (n1 == NULL) *indice = indiceBis;
 
 	

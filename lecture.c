@@ -8,7 +8,7 @@
 #include "lecture.h"
 
 
-
+int curseurLigne[300] = {[0 ... 299] = -1};
 
 
 
@@ -69,15 +69,19 @@ int pointeurLigne (FILE *fic, int n) {
 	int curseur = 0;
 	char c;
 	rewind(fic);
-
-	while (((c = getc(fic)) != '\0') && (compteur < n)) {
-		if (c == '\n') {
-			compteur++;
+	
+	if (curseurLigne[n] != -1) curseur = curseurLigne[n];
+	else{
+		while (((c = getc(fic)) != '\0') && (compteur < n)) {
+			if (c == '\n') {
+				compteur++;
+			}
+			curseur++;
 		}
-		curseur++;
-	}
 
-	if (c == '\0') curseur = -1;
+		if (c == '\0') curseur = -1;
+		curseurLigne[n] = curseur;
+	}
 
 	return curseur;
 }

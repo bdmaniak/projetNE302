@@ -20,8 +20,6 @@
 
 
 
-void *getRootTree;
-
 
 
 _Token *searchTree(void *start,char *name) {
@@ -154,18 +152,18 @@ int main() {
 	//FILE *grammaire;
 	//FILE *lu;
 	int indice = 0;
-	char req[]="GET / HTTP/1.0\r\nHost: www.google.com\r\nTransfer-Encoding: gzip\r\n\r\n";
+	char req[]="GET / HTTP/1.1\r\nHost: www.cvedetails.com\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:44.0) Gecko/20100101 Firefox/44.0\r\nAccept:		 text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\nAccept-Language:	fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3\r\nAccept-Encoding: *   ; q=0.876\r\nConnection: tryit\r\n\r\n";
 	//grammaire = fopen("grammaire.txt", "r");
 
 	//lu = fopen("test.txt", "r");
 
 	//noeud *n1;
 	//n1 = creerArbre(grammaire,lu, &indice, 0, 0, 0);
-	printf("OK1\n");
+
 	if (parseur(req, 15) == -1){
 		exit(1);
 	}
-	printf("OK2\n");
+
 
 	_Token *t1;
 	t1 = searchTree(getRootTree, "case_insensitive_string");
@@ -175,10 +173,10 @@ int main() {
 	*len = 0;
 	while (t1 != NULL){
 		n2 = t1 -> node;
-		printf("nom: %s\n",getElementTag(n2, len));
+		//printf("nom: %s\n",getElementTag(n2, len));
 		
-		printf("valeur: %s\n",getElementValue(n2, len));
-		printf("taille: %d\n", *len);
+		//printf("valeur: %s\n",getElementValue(n2, len));
+		//printf("taille: %d\n", *len);
 		t1 = t1 -> next;
 	}
 
