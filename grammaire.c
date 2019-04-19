@@ -12,6 +12,8 @@ noeud *creerNoeud(string *s1, string *s2){
 	noeud *n1 = malloc(sizeof(noeud));
 	n1 -> nomChamp = s1;
 	n1 -> valeurChamp = s2;
+	n1 -> fils = NULL;
+	n1 -> frere = NULL;
 	return n1;
 }
 
@@ -73,17 +75,18 @@ string *creerString(FILE *fic, int start, int size){
 
 /*Permet de creer une fraterie representant une grammaire de type *, grâce à un tant que, on creer des frères tant que c'est
 possible, en s'assurant que les bornes renseigné autour de l'étoile est bien respecté*/
-noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2){
+noeud *etoile(FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2){
 	if (borne2 == 0) borne2 = 10000000;
 	int compteur = 0;
 	noeud *nfils, *nfrere;
-	nfils = fonction(grammaire, lu, indice, ligne, i, j);
+	nfils = creerArbre(grammaire, lu, indice, ligne, i, j);
 	if (nfils != NULL) compteur++;
-	while ((nfils != NULL) && (compteur < borne2) && ((nfrere = fonction(grammaire, lu, indice, ligne, i, j)) != NULL)){
+	while ((nfils != NULL) && (compteur < borne2) && ((nfrere = creerArbre(grammaire, lu, indice, ligne, i, j)) != NULL)){
 		ajouteFrere(nfils, nfrere);
 		compteur++;
 	}
 	if (((compteur < borne1) || (compteur > borne2)) ){
+		purgeTree(nfils);
 		nfils = NULL;
 	}
 	if((borne1 == 0) && (nfils == NULL)){
@@ -99,13 +102,16 @@ noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* gramma
 noeud *SP (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("SP", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+	
 	if (lire(lu, *indice) == ' '){
+		s1 = recupereMot(rechercheMot("SP", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
+	
 	return n1;
 }
 
@@ -113,13 +119,17 @@ noeud *SP (FILE *grammaire, FILE *lu, int *indice){
 noeud *HTAB (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("HTAB", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
+	
 	if (lire(lu, *indice) == '	'){
+		s1 = recupereMot(rechercheMot("HTAB", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
+	
 	return n1;
 }
 
@@ -127,10 +137,13 @@ noeud *HTAB (FILE *grammaire, FILE *lu, int *indice){
 noeud *DIGIT (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("DIGIT", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
+	
 	if (isdigit(lire(lu, *indice))){
+		s1 = recupereMot(rechercheMot("DIGIT", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -141,13 +154,17 @@ noeud *DIGIT (FILE *grammaire, FILE *lu, int *indice){
 noeud *ALPHA (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("ALPHA", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
+	
 	if (isalpha(lire(lu, *indice))){
+		s1 = recupereMot(rechercheMot("ALPHA", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
+
 	return n1;
 }
 
@@ -155,10 +172,10 @@ noeud *ALPHA (FILE *grammaire, FILE *lu, int *indice){
 noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, string *element){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("case_insensitive_string", grammaire), 0, grammaire);
+	string *s1 = NULL;
+	string *s2 = NULL;
+	
 	int taille = element -> taille - 2;
-	string *s2 = creerString(lu, *indice, taille);
 	int correct = 1;
 	int i = 0;
 	while ((i < taille) && (correct) && (lire(lu, (*indice) + i) != EOF) ){
@@ -166,9 +183,12 @@ noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, string *element)
 		else i++;
 	}
 	if (i == taille){
+		s1 = recupereMot(rechercheMot("case_insensitive_string", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, taille);
 		n1 = creerNoeud(s1, s2);
 		(*indice) += taille;
 	}
+
 	return n1;
 }
 
@@ -176,10 +196,12 @@ noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, string *element)
 noeud *CRLF (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("CRLF", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 2);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
 	if ((lire(lu, *indice) == '\r')&&(lire(lu, (*indice)+1) == '\n')){
+		s1 = recupereMot(rechercheMot("CRLF", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 2);
 		n1 = creerNoeud(s1, s2);
 		(*indice) += 2;
 	}
@@ -191,10 +213,12 @@ noeud *HEXDIG (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
 	char c = lire(lu, *indice);
-	string *s1;
-	s1 = recupereMot(rechercheMot("HEXDIG", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+	
 	if (((c >= 48) && (c <= 57))||((c >= 65)&&(c <= 70))){
+		s1 = recupereMot(rechercheMot("HEXDIG", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -206,10 +230,12 @@ noeud *DQUOTE (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
 	char c = lire(lu, *indice);
-	string *s1;
-	s1 = recupereMot(rechercheMot("DQUOTE", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+	
 	if (c == 34){
+		s1 = recupereMot(rechercheMot("DQUOTE", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -221,10 +247,13 @@ noeud *VCHAR (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
 	char c = lire(lu, *indice);
-	string *s1;
-	s1 = recupereMot(rechercheMot("VCHAR", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
+	
 	if ((c >= 33) && (c <= 126)){
+		s1 = recupereMot(rechercheMot("VCHAR", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -236,10 +265,13 @@ noeud *CHAR (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
 	char c = lire(lu, *indice);
-	string *s1;
-	s1 = recupereMot(rechercheMot("CHAR", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
+	
 	if ((c >= 0) && (c <= 127)){
+		s1 = recupereMot(rechercheMot("CHAR", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -251,10 +283,12 @@ noeud *OCTET (FILE *grammaire, FILE *lu, int *indice){
 	noeud *n1;
 	n1 = NULL;
 	char c = lire(lu, *indice);
-	string *s1;
-	s1 = recupereMot(rechercheMot("OCTET", grammaire), 0, grammaire);
-	string *s2 = creerString(lu, *indice, 1);
+	string *s1 = NULL;
+	string *s2 = NULL;
+
 	if ((c >= 0) && (c <= 255)){
+		s1 = recupereMot(rechercheMot("OCTET", grammaire), 0, grammaire);
+		s2 = creerString(lu, *indice, 1);
 		n1 = creerNoeud(s1, s2);
 		(*indice)++;
 	}
@@ -279,8 +313,7 @@ char convAscii (char hexa[3]){
 noeud *valAscii (FILE *grammaire, FILE *lu, int *indice, string *element){
 	noeud *n1;
 	n1 = NULL;
-	string *s1;
-	s1 = recupereMot(rechercheMot("valAscii", grammaire), 0, grammaire);
+	string *s1 = NULL;
 	string *s2 = NULL;
 	int taille = element -> taille;
 	int tailleAscii = 0;
@@ -322,6 +355,7 @@ noeud *valAscii (FILE *grammaire, FILE *lu, int *indice, string *element){
 		correct = 0;
 	}
 	if (correct) {
+		s1 = recupereMot(rechercheMot("valAscii", grammaire), 0, grammaire);
 		s2 = creerString(lu, *indice, tailleAscii);
 		n1 = creerNoeud(s1, s2);
 		(*indice) += tailleAscii;
@@ -412,10 +446,14 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 			if ((n2 = creerArbre(grammaire, lu, indice, line, 2, dernierElement)) != NULL){
 				n1 = malloc(sizeof(noeud));
 				n1 -> nomChamp = recupereMot(line, 0, grammaire);
+				n1 -> fils = NULL;
+				n1 -> frere = NULL;
 				ajouteFils(n1, n2);
 				n1 -> valeurChamp = creerString(lu, indiceBis, tailleNoeud(n2));
 			}
+
 		}
+		free(mot);
 	}
 	//Sinon notre expression est composé de plusieurs mots, dans ce cas on retourne un noeud contenant le noeud du premier
 	//mot de l'expression (l'ainée) auquel on ajoute des frères qui sont les noeuds des mots suivants.
@@ -434,6 +472,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 				}
 			}
 			l++;
+			free(mot);
 		}
 		/*Si on a pas eu de OU (/) dans l'expression, alors on parcours l'expression et pour chaque mot on lui applique
 		la fonction creerArbre. Par contre dans le cas ou on rencontre *, on applique la fonction étoile, si on rencontre
@@ -444,6 +483,8 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 			mot = recupereMot(ligne, k, grammaire);
 			borne1 = 0;
 			borne2 = 0;
+			string *st = NULL;
+			string *stbis = NULL;
 			//On gère les differents type d'étoile, * , x* , *y, et x*y, de même un nombre x placé devant une
 			//expression peut être vu comme x*x. On créer ensuite le noeud associé à cette expression avec etoile.
 			if ((recupChar(mot, 0) == '*')||(recupChar(mot, 1) == '*') || (isdigit(c = recupChar(mot, 0)))){
@@ -460,11 +501,12 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 					borne2 = c - 48;
 				}
 				//Si on rencontre une parenthèse, on applique étoile à l'expression entre parenthèse
-				if (compareChaineStr(recupereMot(ligne, k+1, grammaire),"(")){
+				if (compareChaineStr((st = recupereMot(ligne, k+1, grammaire)),"(")){
 					compteur = 1;
 					k = k + 2;
 					debut = k;
 					while (compteur != 0){
+						free(mot);
 						mot = recupereMot(ligne, k, grammaire);
 						if (compareChaineStr(mot,"(")) compteur ++;
 						if (compareChaineStr(mot,")")) compteur --;
@@ -479,31 +521,35 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 					fin = k+1;
 					k = k +1;
 				}
-				n2 = etoile(creerArbre,grammaire,lu, indice, ligne, debut , fin, borne1, borne2);
+				free(st);
+				n2 = etoile(grammaire,lu, indice, ligne, debut , fin, borne1, borne2);
 			}
 			else{
 				//Si il n'y a pas d'étoile, alors l'expression analyser doit être présente une seule fois
 				//Si il y a une parenthèse, on creer le noeud associé à l'expression entre parenthèse
-				if (compareChaineStr(recupereMot(ligne, k, grammaire),"(")){
+				if (compareChaineStr((st = recupereMot(ligne, k, grammaire)),"(")){
 					compteur = 1;
 					k = k + 1;
 					debut = k;
 					while (compteur != 0){
+						free(mot);
 						mot = recupereMot(ligne, k, grammaire);
 						if (compareChaineStr(mot,"(")) compteur ++;
 						if (compareChaineStr(mot,")")) compteur --;
 						k++;
+						
 					}
 					fin = k-2;
 					k--;
 					n2 = creerArbre(grammaire, lu, indice, ligne, debut, fin);
 				}
 				//De même pour un crochet
-				else if (compareChaineStr(recupereMot(ligne, k, grammaire),"[")){
+				else if (compareChaineStr((stbis = recupereMot(ligne, k, grammaire)),"[")){
 					compteur = 1;
 					k = k + 1;
 					debut = k;
 					while (compteur != 0){
+						free(mot);
 						mot = recupereMot(ligne, k, grammaire);
 						if (compareChaineStr(mot,"[")) compteur ++;
 						if (compareChaineStr(mot,"]")) compteur --;
@@ -511,16 +557,19 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 					}
 					fin = k-2;
 					k--;
-					n2 = etoile(creerArbre, grammaire, lu, indice, ligne, debut, fin, 0, 1);
+					n2 = etoile(grammaire, lu, indice, ligne, debut, fin, 0, 1);
 				}
 				//Sinon on applique creerArbre au mot k-ième mot de la ligne-ième ligne
 				else{
 					n2 = creerArbre(grammaire, lu, indice, ligne, k, k);
 				}
+				free(st);
+				free(stbis);
 			}
 			//Si aucun noeud n'a été créé, l'expression est fausse donc on renvoie NULL
 			if (n2 == NULL){
 				continuer = 0;
+				purgeTree(n1);
 				n1 = NULL;
 				k = j;
 			}
@@ -534,6 +583,7 @@ noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int 
 				ajouteFrere(n1,n2);
 			}
 			k++;
+			free(mot);
 		}
 	}
 	//Si une partie de ce qui a été reçu n'est pas compatible avec la grammaire, alors on repositionne le curseur de

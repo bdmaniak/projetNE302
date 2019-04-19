@@ -3,6 +3,7 @@
 
 /*Ce module contient toutes les fonctions qui permettent de creer l'arbre à partir de la grammaire*/
 
+FILE *requete;
 
 //Creer un noeud à partir d'un string s1 qui correspond au nom du champ et s2 qui correspond à la valeur du champ
 noeud *creerNoeud(string *s1, string *s2);
@@ -20,7 +21,7 @@ int tailleNoeud (noeud *n1);
 string *creerString(FILE *fic, int start, int size);
 
 //Cette fonction permet de creer le sous arbre representant l'operateur * dans la grammaire
-noeud *etoile(noeud *(*fonction)(FILE*, FILE*, int*, int, int, int),FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2);
+noeud *etoile(FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2);
 
 
 //CAS DE BASE: On compare les elements de grammaire.txt avec les elements lu dans la requête pour s'assurer que la requête est correcte et on construit les feuilles de l'arbre au passage, qui seront relier au noeuds parent de manière recursive.

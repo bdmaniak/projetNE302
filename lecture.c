@@ -22,8 +22,11 @@ int rechercheMot(char *mot, FILE *fic){
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareChaineStr(st, mot))){
 		indice++;
+		free(st);
 	}
 	if (!compareChaineStr (st, mot)) indice = -1;
+	free(st);
+	
 	return indice;
 }
 
@@ -33,8 +36,11 @@ int rechercheString(string *mot, FILE *fic){
 	string *st = NULL;
 	while (((st = recupereMot(indice, 0, fic)) != NULL) && (!compareString(st, mot))){
 		indice++;
+		free(st);
 	}
 	if (!compareString(st, mot)) indice = -1;
+	free(st);
+	
 	return indice;
 }
 
@@ -110,6 +116,7 @@ int compareChaineStr (string *s1, char *chaine) {
 		if (recupChar(s1, i) != chaine[i]) egal = 0;
 		i++;
 	}
+
 	return egal;
 }
 
@@ -141,8 +148,10 @@ void afficherString(string *chaine) {
 
 int IndiceDernierElement(int ligne, FILE *grammaire){
 	int compteur = 0;
-	while (recupereMot(ligne, compteur, grammaire) != NULL){
+	string *st = NULL;
+	while ((st = recupereMot(ligne, compteur, grammaire)) != NULL){
 		compteur++;
+		free(st);
 	}
 	return (compteur - 1);
 }

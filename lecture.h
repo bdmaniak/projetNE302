@@ -3,6 +3,8 @@
 
 /*Ces fonctions permettent la lecture et l'affichage dans des fichiers ou des structures string*/
 
+
+
 //Permet de lire le indice-ième caractere d'un fichier
 char lire (FILE *lu, int indice);
 

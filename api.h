@@ -13,13 +13,12 @@ typedef struct String {
 typedef struct Arbre {
   struct Arbre *fils; //Tableau de pointeurs vers les fils
   struct Arbre *frere;
-  struct Arbre *pere;  //Pointeur vers le pere
-  int nbFils; //Pour connaitre le nombre de fils du tableau de pointeurs
   string *nomChamp;
   string *valeurChamp;
 } noeud;
 
 
+int *actualisation;
 
 
 // defini un type pour la liste chainee renvoyée en réponse de  la requete de recherche dans l'arbre.
