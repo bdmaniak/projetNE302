@@ -100,17 +100,15 @@ void purgeTree(void *root) {
 
 
 int parseur(char *req, int len){
-	FILE *grammaire;
+
 	requete = fopen("requete.txt","w+");
 	grammaire = fopen("grammaire.txt","r");
 	int indice = 0;
 	fprintf(requete, "%s", req);
 	getRootTree = creerArbre(grammaire, requete, &indice, 0, 0, 0);
 	if (getRootTree) {
-		fclose(grammaire);
 		return 1;
 	}
-	fclose(grammaire);
 	return 0;
 }
 

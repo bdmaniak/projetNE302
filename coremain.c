@@ -32,7 +32,7 @@ char *readFileReq(char *fn){
     return dt;
 }
 
-int LMT=1021;
+int LMT=20000;
 
 int main(int argc, char *argv[])
 {
@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 		r = NULL;
             purgeTree(root) ;
 		fclose(requete);
+    		fclose(grammaire);
 
         }
         else {

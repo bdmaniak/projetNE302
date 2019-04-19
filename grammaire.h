@@ -4,6 +4,7 @@
 /*Ce module contient toutes les fonctions qui permettent de creer l'arbre à partir de la grammaire*/
 
 FILE *requete;
+FILE *grammaire;
 
 //Creer un noeud à partir d'un string s1 qui correspond au nom du champ et s2 qui correspond à la valeur du champ
 noeud *creerNoeud(string *s1, string *s2);
