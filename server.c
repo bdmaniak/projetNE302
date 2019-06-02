@@ -19,8 +19,11 @@
 
 #define ERROR "HTTP/1.0 400 SUCKA\r\n\r\n"
 #define REPONSE "HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\nHey Bro why did you send me this:\r\n"
-#define M501 "HTTP/1.0 501 Not implemented\r\n\r\n"
-#define M404 "HTTP/1.0 404 Not Found\r\n\r\n"
+#define M501 "HTTP/1.0 501 Not implemented\r\n"
+#define M400 "HTTP/1.0 400 Bad Request\r\n"
+#define M404 "HTTP/1.0 404 Not Found\r\n"
+#define M200 "HTTP/1.0 200 OK\r\n"
+
 
 int main(int argc, char *argv[])
 {
@@ -31,8 +34,11 @@ int main(int argc, char *argv[])
 	while ( 1 ) {
 
 
-		_Token *tok, *r;
-		noeud *n; 
+		_Token *tok = NULL;
+		_Token *r = NULL;
+		noeud *n = NULL; 
+		enTete *et1 = malloc(sizeof(enTete));
+		initEnTete(et1);
 		
 
 		// on attend la reception d'une requete HTTP requete pointera vers une ressource allouée par librequest. 
@@ -47,7 +53,8 @@ int main(int argc, char *argv[])
 			
 			// get the root of the tree this is no longer opaque since we know the internal type with httpparser.h 
 			//void *root; 
-			writeDirectClient(requeteRecu->clientId,ERROR,strlen(ERROR)); 
+			printf("OOOOOOK\n");
+			reponseServeur(400, et1, NULL, requeteRecu);
 			
 
 			/*//Erreur 501:
@@ -65,15 +72,8 @@ int main(int argc, char *argv[])
 			printf("OK2\n");
 			tok = r;
 			n = (noeud *) tok->node;
-			printf("root: %p\n",root);
-			printf("n: %p\n",n);
-			printf("r: %p\n",r);
-			printf("n: %p\n",n);
-			printf("OK2Bis\n");
-			printf("valeur n: %s\n", convString(n->valeurChamp));
-	
-				
-			if (compareChaineStr(n->valeurChamp, "GET") == 0){
+
+			if (compareChaineStr(n->valeurChamp, "GET") == 1){
 					
 				printf("OK3\n");
 				char *chaineComplete = referenceTarget(root);
@@ -81,13 +81,15 @@ int main(int argc, char *argv[])
 				FILE * target;
 				if (target = fopen(chaineComplete, "r")){
 					printf("OK4\n");
+					reponseServeur(200, et1, NULL, requeteRecu);
+					
 
 
 
 				}
 				else{
 					printf("OK5\n");
-					writeDirectClient(requeteRecu->clientId,M404,strlen(M404));
+					reponseServeur(404, et1, NULL, requeteRecu);
 
 				}
 					
@@ -95,8 +97,11 @@ int main(int argc, char *argv[])
 					
 					
 			}
-			else if (compareChaineStr(n->valeurChamp, "POST") == 0){
+			else if (compareChaineStr(n->valeurChamp, "POST") == 1){
 				printf("OK6\n");
+			}
+			else{
+				reponseServeur(501, et1, NULL, requeteRecu);
 			}
 			printf("OK6Bis\n");
 		
@@ -106,6 +111,7 @@ int main(int argc, char *argv[])
 		printf("OK7\n");
 		r=searchTree(root,"HTTP_message"); 
 		n= (noeud *) r->node; 
+		printf("valeur2: %s\n", convString(n->valeurChamp));
 		while (tok) {
 			int l; 
 			char *s; 
@@ -115,9 +121,9 @@ int main(int argc, char *argv[])
 		}
 		purgeElement(&r); 
 		purgeTree(root); 
-		if (1 /*test des erreurs*/) {
+		/*if (1 test des erreurs) {
 			writeDirectClient(requeteRecu->clientId,ERROR,strlen(ERROR)); 
-		}
+		}*/
 		endWriteDirectClient(requeteRecu->clientId); 
 		requestShutdownSocket(requeteRecu->clientId); 
 		// on ne se sert plus de requete a partir de maintenant, on peut donc liberer... 
@@ -129,10 +135,12 @@ int main(int argc, char *argv[])
 }
 
 
-int message501(noeud *root){
 
-	_Token *r;
-	noeud *n;
+
+int message501(void *root){
+
+	_Token *r = NULL;
+	noeud *n = NULL;
 	r = searchTree(root,"method");
 	n = (noeud *) r->node;
 	int retour = 1;
@@ -159,30 +167,32 @@ void init(char *chaine){
 
 char *dotSegmentRemoval(char *chaine){
 	
-	_Token *r;
-	noeud * n;
-	noeud * root = getRootTree;
-	r = searchTree(root,"request-target");
-	n = (noeud *) r->node;
+
 	int continuer = 1;
-	int score = 0;
+	int score = -1;
 	
-	char *valeur = convString(n->valeurChamp);
-	int taille = strlen(valeur);
+	int taille = strlen(chaine) + 1;
 	char *chaineDecode = malloc(taille * sizeof(char));
+	init(chaineDecode);
 	char *sousChaine = malloc(taille*sizeof(char));
-	int ecrire = 0;
+	init(sousChaine);
 	int j = 0;
 	int k = 0;
 	for (int i = 0; i < taille; i++){
 
-		if ((ecrire) && (valeur[i] != '/')) sousChaine[j] = valeur[i]; 
+		sousChaine[j] = chaine[i];
+		j++;
 
-		if (valeur[i] == '/'){
-			if (strcmp(sousChaine, "..") == 0) score--;
-			else if (strcmp(sousChaine, ".") == 0);
+
+		if ((chaine[i] == '/') || ((chaine[i] == '\0') && (chaine[i - 1] != '/'))){
+			printf("sousChaine: %s\n", sousChaine);
+			
+			if (strcmp(sousChaine, "../") == 0) score--;
+			else if (strcmp(sousChaine, "./") == 0);
+			else if (strcmp(sousChaine, "/") == 0);
+			else if (strcmp(sousChaine, "") == 0);
 			else score ++;
-
+			printf("score: %d\n", score);
 			if (score >= 0){
 				j = 0;
 				while (sousChaine[j] != '\0'){
@@ -192,10 +202,11 @@ char *dotSegmentRemoval(char *chaine){
 				}
 
 			}
+			init(sousChaine);
+			j = 0;
 
 		}
-		init(sousChaine);
-		j = 0;
+		
 
 	}
 
@@ -209,8 +220,9 @@ char *dotSegmentRemoval(char *chaine){
 char * percentEncoding(char *chaine){
 	
 	
-	int taille = strlen(chaine);
+	int taille = strlen(chaine) + 1;
 	char *chaineDecode = malloc(taille*sizeof(char));
+	init(chaineDecode);
 	int i = 0;
 	int j = 0;
 	while (i < taille){
@@ -235,28 +247,76 @@ char * percentEncoding(char *chaine){
 }
 
 
-char * referenceTarget (noeud *root){
+char * referenceTarget (void *root){
 
-	_Token *r;
-	noeud * n;
+	_Token *r = NULL;
+	noeud * n = NULL;
+	
+	*actualisation = 0;
 	r = searchTree(root,"request-target");
-	n = (noeud *) r;
+	n = (noeud *) r->node;
+	afficherString(n->valeurChamp);
 	char *chaine1 = convString(n->valeurChamp);
+	printf("target: %s\n", chaine1);
 	char *chaine2 = dotSegmentRemoval(chaine1);
+	printf("DSR: %s\n", chaine2);
 	char *chaineTarget = percentEncoding(chaine2);
+	printf("PE: %s\n", chaineTarget);
 	char *chaineBase = "/var/www/";
-	int tailleTarget = strlen(chaineTarget);
+	int tailleTarget = strlen(chaineTarget) + 1;
 	int tailleBase = strlen(chaineBase);
 	char *chaineComplete = malloc(tailleTarget + tailleBase);
+	init(chaineComplete);
 
 	for (int i = 0; i < tailleBase; i++){
 		chaineComplete[i] = chaineBase[i];
 	}
 	for (int i = 0; i < tailleTarget; i++){
 		chaineComplete[tailleBase + i] = chaineTarget[i];
+		
 	}
 
 	return chaineComplete;
 
 }
+
+void reponseServeur(int code, enTete *et1, char * msgBody, message *requeteRecu){
+	if (code == 200) writeDirectClient(requeteRecu->clientId,M200,strlen(M200));
+	printf("ok: %d\n", (code == 200));
+	if (code == 404) writeDirectClient(requeteRecu->clientId,M404,strlen(M404));
+	if (code == 501) writeDirectClient(requeteRecu->clientId,M501,strlen(M501));
+
+	if (et1->contentEncoding != NULL) writeDirectClient(requeteRecu->clientId,et1->contentEncoding,strlen(et1->contentEncoding));
+	if (et1->contentLanguage != NULL) writeDirectClient(requeteRecu->clientId,et1->contentLanguage,strlen(et1->contentLanguage));
+	if (et1->contentLength != NULL) writeDirectClient(requeteRecu->clientId,et1->contentLength,strlen(et1->contentLength));
+	if (et1->contentType != NULL) writeDirectClient(requeteRecu->clientId,et1->contentType,strlen(et1->contentType));
+	if (et1->date != NULL) writeDirectClient(requeteRecu->clientId,et1->date,strlen(et1->date));
+	if (et1->expires != NULL) writeDirectClient(requeteRecu->clientId,et1->expires,strlen(et1->expires));
+	if (et1->forwarded != NULL) writeDirectClient(requeteRecu->clientId,et1->forwarded,strlen(et1->forwarded));
+	if (et1->location != NULL) writeDirectClient(requeteRecu->clientId,et1->location,strlen(et1->location));
+	if (et1->server != NULL) writeDirectClient(requeteRecu->clientId,et1->server,strlen(et1->server));
+	writeDirectClient(requeteRecu->clientId,"\r\n",strlen("\r\n"));
+	if (msgBody != NULL) writeDirectClient(requeteRecu->clientId,msgBody,strlen(msgBody));
+	
+
+
+}
+
+void initEnTete(enTete *et1){
+	et1->contentEncoding = NULL;
+	et1->contentLanguage = NULL;
+	et1->contentLength = NULL;
+	et1->contentType = NULL;
+	et1->date = NULL;
+	et1->expires = NULL;
+	et1->forwarded == NULL;
+	et1->location == NULL;
+	et1->server == NULL;
+}
+
+
+
+
+
+
 

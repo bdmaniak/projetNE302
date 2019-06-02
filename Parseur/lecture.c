@@ -143,16 +143,21 @@ void afficherString(string *chaine) {
 		}
 		printf("\n");
 	}
+
+
+
+
 }
 
 char *convString(string *chaine) {
 	char *chaineRetour = NULL;
 	if (chaine != NULL){
-		chaineRetour = malloc(sizeof(char) * (chaine->taille));
+		chaineRetour = malloc(sizeof(char) * ((chaine->taille) + 1));
 		fseek(chaine->fichier, chaine->depart, SEEK_SET);
 		for (int i = 0; i< chaine -> taille; i++){
 			chaineRetour[i] = getc(chaine->fichier);
 		}
+		chaineRetour[(chaine->taille) + 1] = '\0';
 	}
 	return chaineRetour;
 }

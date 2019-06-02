@@ -1,2 +1,2 @@
-GET / HTTP/1.0
+GET /OK/ HTTP/1.0
 
