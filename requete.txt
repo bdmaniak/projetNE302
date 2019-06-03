@@ -1,2 +1,3 @@
-GET /OK/ HTTP/1.0
+GET /requete.txt HTTP/1.0
+Host: www.site1.fr
 
