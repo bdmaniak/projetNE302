@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     int stop=start+LMT;
     int score=0;
     int st=1;
-	actualisation = malloc(sizeof(int));
+	//actualisation = malloc(sizeof(int));
 
     if (argc != 2 ) { printf("usage: %s <rulename>\n",argv[0]); return 0; }
  
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 
 
 
-	*actualisation = 0;
+	//*actualisation = 0;
         sprintf(file,root1,i);
         req = readFileReq(file);  
         printf("### Test %i :",i);

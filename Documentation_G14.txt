@@ -1,0 +1,113 @@
+/*************************************************************************************************************************************************************************************
+* 										Documentation des Étapes 3 et 4 : Projet NE302 2018 - 2019 ; Groupe 14 ; MENCHERO - GIRET - ROUQUIER										 *
+*************************************************************************************************************************************************************************************/
+
+
+
+ ___________________________________________________________________________________________________________________________________________________________________________________
+|																																													|
+|																		Structures de données :																						|
+|___________________________________________________________________________________________________________________________________________________________________________________|
+
+
+	-> Structure des headers ; Structure enTete composé des chaînes de caractères suivantes :
+		- contentEncoding	: Type d'encodage du contenu
+		- contentLanguage	: Langue du contenu (pour nous français)
+		- contentLength		: Taille en octets du contenu
+		- contentType		: Type du contenu (<image, texte, application, ...> / <extension>)
+		- date				: Date de création du paquet (Nom du Jour, Numéro du Jour, Nom du Mois, Année, Heure, Minute, Seconde)
+		- expires			: Date d'expiration du contenu
+		- forwarded			: Indique si le paquet a été retransmis ou non
+		- location			: Donne la référence de l'URI source
+		- server			: Donne le nom du serveur communiquant
+
+Nous avons pris le parti dans ce projet de partir sur une approche utilisant beaucoup de fichiers. Par exemple, la vérification sémantique se fait directement à partir du fichier 
+grammaire.txt. 
+Nous utilisons ainsi le parseur créé précédemment pour obtenir une première vérification sémantique. Ensuite, nous vérifions la syntaxe de la requête à l'intérieur même du serveur.
+
+
+
+ ___________________________________________________________________________________________________________________________________________________________________________________
+|																																													|
+|																		Fonctions du serveur :																						|
+|___________________________________________________________________________________________________________________________________________________________________________________|
+
+
+	-> void init(char *chaine, int taille);
+		- Sert à initialiser une chaîne de caractères à une suite de caractères 'EOF' (fin de fichier)
+	
+	-> void init_buf(char *chaine);
+		- Sert à initialiser le buffer donné, de taille MAX_SIZE + 1
+	
+	-> char *dotSegmentRemoval(char *chaine);
+		- Sert à éviter de remonter dans l'arborescence de fichiers locaux avec ".." ; "../" ; "/" pour fermer une potentielle faille de sécurité. On ne veut pas que quelqu'un aille
+		modifier des fichiers à la source du serveur ou qu'il puisse télécharger n'importe quel fichier du serveur.
+		
+	-> char * percentEncoding(char *chaine);
+		- Permet de décoder les parties de requêtes du serveur encodée en code ASCII à l'aide de signes % (par exemple %41 = A).
+		
+	-> char * referenceTarget (void *root);
+		- Recherche la ressource demandée dans l'arborescence donnée. Initie l'envoi d'une erreur 404 si la ressource n'est pas trouvée.
+		
+	-> void reponseServeur(int code, enTete *et1, char * msgBody, message *requeteRecu, int taille);
+		- Répond au client par un message composé :
+			_ Du code de la réponse envoyée (404, 200, 501, ...)
+			_ De l'en-tête e1 approprié
+			_ Du corps de message msgBody si nécessaire
+			_ La taille du corps de message
+			
+	-> void initEnTete(enTete *et1);
+		- Initialise tous les champs de l'en-tête et1 à NULL
+		
+	-> void ajouterHeure(enTete *et1);
+		- Remplit le champ date de et1 avec la date et l'heure actuelles
+		
+	-> int verification();
+		- Vérifie la validité de la requête, et initie l'envoi d'une erreur 400 (requête fausse) dans les cas suivants :
+			_ Si des champs incompatibles sont remplis
+			_ Si on est en HTTP 1.0 et que le champ Host est vide (en 1.0 c'est accepté)
+			_ Si la version HTTP n'est ni 1.0 ni 1.1 (Non supporté)
+			_ Si plus d'un champ Host se trouvent dans le message
+			
+		- Cette fonction renvoie 1 si une erreur a été détectée et 0 si la requête est correcte
+	
+	-> int min(int a, int b);
+		- Renvoie le minimum entre deux entiers. Utilitaire
+		
+	-> void contentType(char * chaineComplete, int mLen, enTete * et1);
+		- Longue liste de if permettant de détecter le format d'un fichier demandé à partir de son extension
+		- Formats supportés : 
+			_ Images 		: png, jpg/jpeg, gif, tiff
+			_ Texte 		: css, html, txt
+			_ Application	: json, pdf
+
+
+
+ ___________________________________________________________________________________________________________________________________________________________________________________
+|																																													|
+|																	Fonctionnement du main :																						|
+|___________________________________________________________________________________________________________________________________________________________________________________|
+
+	- On alloue de la mémoire pour la structure d'en-têtes, puis le serveur se place en attente dans une boucle infinie. Dès qu'il reçoit une requête, il commence le traitement.
+
+	- Le programme vérifie d'abord la syntaxe de la requête avec le parseur de l'étape 2. Puis il utilise la fonction verification pour vérifier la validité des en-têtes.
+
+	- Toute erreur dans ces tests conduit à l'envoi d'une réponse contenant le code d'erreur 400 : Requête fausse (Bad Request).
+
+	- Nous arrivons maintenant à l'endroit du programme où sont traitées les requêtes syntaxiquement correctes. On sépare par conséquent les différentes requêtes.
+
+	- Si la requête est de type GET, on commence par essayer de reconnaître le type du fichier demandé, avec la fonction contentType. Si on ne reconnaît pas le type, on l'envoie
+	sous la forme d'un bit-stream générique (cela a pour effet de télécharger la ressource quand testé sur le navigateur).
+
+	- Si le fichier demandé ne peut pas être retrouvé, on envoie une erreur 404 (introuvable). Sinon on renvoie le fichier avec le code 200 (succès).
+
+	- Si la requête est de type HEAD, on procède de manière similaire, mais on n'envoie pas le fichier, juste les en-têtes du message qu'on aurait envoyé si la requête avait été
+	de type GET.
+
+	- Si la requête est de type POST, /******< À COMPLÉTER >*********/
+
+	- Dans le cas d'un autre type de requête, on répond avec un message 501 Non Implémenté (not implemented).
+
+	- On libère ensuite la mémoire utilisée et on attend la requête suivante.
+
+

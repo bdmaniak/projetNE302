@@ -12,17 +12,19 @@
 _Token *searchTree(void *start,char *name) {
 	static _Token *t1 = NULL;
 	static _Token *debut = NULL;
+	_Token * debutCopie = NULL;
 	noeud *n1 = start;
+	static int actualisation = 0;
+	static int etage = 0;
 
-	
 	while (n1 != NULL){
 		if (compareChaineStr(n1->nomChamp,name)){
-			if (!(*actualisation)){
+			if (!actualisation){
 				t1 = malloc(sizeof(_Token));
 				t1 -> node = n1;
 				t1 -> next = NULL;
 				debut = t1;
-				*actualisation = 1;
+				actualisation = 1;
 			}
 			else{
 				t1 -> next = malloc(sizeof(_Token));
@@ -31,10 +33,17 @@ _Token *searchTree(void *start,char *name) {
 				t1 -> node = n1;
 			}
 		}
+		etage++;
 		debut = searchTree(n1->fils, name);
+		etage--;
 		n1 = n1 -> frere;
 	}
-	return debut;
+	debutCopie = debut;
+	if (etage == 0){
+		actualisation = 0;
+		debut = NULL;
+	}
+	return debutCopie;
 }
 
 

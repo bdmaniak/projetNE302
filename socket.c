@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include "fastcgi.h" 
 
 // =========================================================================================================== // 
@@ -147,13 +148,13 @@ static int createSocket(int port)
 	return fd;
 }
 // =========================================================================================================== // 
-int main(int argc,char *argv[])
-{
-	int fd; 
-	fd=createSocket(9000); 
-	sendGetValue(fd); 
-	sendBeginRequest(fd,10,FCGI_RESPONDER,FCGI_KEEP_CONN); 
-	sendStdin(fd,10,argv[1],strlen(argv[1])); 
-	sendData(fd,10,argv[1],strlen(argv[1])); 
-}
+// int main(int argc,char *argv[])
+// {
+	// int fd; 
+	// fd=createSocket(9000); 
+	// sendGetValue(fd); 
+	// sendBeginRequest(fd,10,FCGI_RESPONDER,FCGI_KEEP_CONN); 
+	// sendStdin(fd,10,argv[1],strlen(argv[1])); 
+	// sendData(fd,10,argv[1],strlen(argv[1])); 
+// }
 

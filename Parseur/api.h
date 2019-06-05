@@ -18,7 +18,7 @@ typedef struct Arbre {
 } noeud;
 
 
-int *actualisation;
+//int *actualisation;
 
 
 // defini un type pour la liste chainee renvoyée en réponse de  la requete de recherche dans l'arbre.

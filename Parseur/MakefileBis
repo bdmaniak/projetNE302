@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -g -fPIC
 
-all: coremain
+all: coremain monsieurpropre
 
 coremain: api.o grammaire.o lecture.o coremain.o
 	$(CC) $(CFLAGS) -o coremain coremain.o api.o grammaire.o lecture.o -lm
@@ -24,3 +24,5 @@ lecture.o: lecture.c grammaire.h api.h
 clean:
 	rm api
 
+monsieurpropre:
+	rm *.o

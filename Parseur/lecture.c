@@ -157,7 +157,7 @@ char *convString(string *chaine) {
 		for (int i = 0; i< chaine -> taille; i++){
 			chaineRetour[i] = getc(chaine->fichier);
 		}
-		chaineRetour[(chaine->taille) + 1] = '\0';
+		chaineRetour[(chaine->taille)] = '\0';
 	}
 	return chaineRetour;
 }
