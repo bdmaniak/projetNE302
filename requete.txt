@@ -1,10 +1,9 @@
-GET /www.serpent.com/js/jeu.js HTTP/1.1
+GET /zozor/css/images/ico_liensexterne.png HTTP/1.1
 Host: 127.0.0.1:8080
-User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:67.0) Gecko/20100101 Firefox/67.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0
 Accept: */*
-Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Language: en-US,en;q=0.5
 Accept-Encoding: gzip, deflate
-DNT: 1
+Referer: http://127.0.0.1:8080/zozor/css/style.css
 Connection: keep-alive
-Referer: http://127.0.0.1:8080/www.serpent.com/index.html
 

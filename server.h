@@ -1,3 +1,6 @@
+#ifndef __SERVER_H
+#define __SERVER_H
+
 typedef struct EnTete{
 	char *contentEncoding;
 	char *contentLanguage;
@@ -23,3 +26,5 @@ void ajouterHeure(enTete *et1);
 int verification();
 int min(int a, int b);
 void contentType(char * chaineComplete, int mLen, enTete * et1);
+
+#endif

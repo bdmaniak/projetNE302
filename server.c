@@ -32,6 +32,20 @@ taper dans la barre d'addresse : http://127.0.0.1/site/index.html
 #include "./Parseur/grammaire.h"
 #include "server.h"
 
+// Pour socket.h
+#include <unistd.h>
+#include <time.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+
+// Pour gérer le php
+#include "fastcgi.h"
+#include "socket.h"
+
+// Constantes
+
 #define DOSSIER_SERVER "./www/" //Dossier dans lequel les sites du serveur sont stockes
 #define MAX_SIZE 100000000 // Définit une taille maximale pour l'envoit de fichier (on ne peut pas envoyer un fichier de 10 Go)
 #define ERROR "HTTP/1.0 400 SUCKA\r\n\r\n"
@@ -91,7 +105,7 @@ int main(int argc, char *argv[]) {
 			
 
 			//Methode GET
-			if (compareChaineStr(n->valeurChamp, "GET") == 1){
+			if (compareChaineStr(n->valeurChamp, "GET") == 1) {
 				_Token * r1 = searchTree(root, "message-body");
 				noeud * n1 = (noeud *) r1->node;
 				if ((((noeud *)(searchTree(root, "message-body")->node))->valeurChamp)->taille) reponseServeur(400, et1, "Message body in a GET request\n", requeteRecu, 0);
@@ -101,19 +115,29 @@ int main(int argc, char *argv[]) {
 					int mLen = 0;
 					if (chaineComplete != NULL) mLen = strlen(chaineComplete);
 
+					// AJOUT PHP ATTENTION CA PEUT EXPLOSER
+					if ((chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'h' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.')) {
+						// Là ça va exploser
+						int fd;
+						if((fd = createSocket(9000)) == -1) {
+							printf("ERREUR lors de la création de la socket.\n");
+						}
+						
+					}
+					
+
 					// On gère le Content-Type
 					//On reconnait un fichier par son extension. Ce programme ne fonctionnera pas si l'extension n'est pas correcte.
 					contentType(chaineComplete, mLen, et1);
 			
 					FILE * target;
-					if ((target = fopen(chaineComplete, "rb")) != 0){
-						size_t br;
+					if ((target = fopen(chaineComplete, "rb"))) {
 						size_t taille;
 						fseek(target, 0, SEEK_END);
 						taille = ftell(target);
 						rewind(target);
 
-						br = fread(buf, 1, taille, target);
+						fread(buf, 1, taille, target);
 					
 						reponseServeur(200, et1, buf, requeteRecu, taille);
 						fclose(target);
@@ -138,7 +162,7 @@ int main(int argc, char *argv[]) {
 
 					char *chaineComplete = referenceTarget(root);
 					FILE * target;
-					if ((target = fopen(chaineComplete, "rb")) != 0){
+					if ((target = fopen(chaineComplete, "rb"))){
 						size_t taille; // Taille du body que l'on aurait envoyé si c'était un GET (sert pour Content-Length)
 						fseek(target, 0, SEEK_END);
 						taille = ftell(target);
@@ -249,9 +273,6 @@ char *dotSegmentRemoval(char *chaine) {
 }
 
 
-
-
-
 char * percentEncoding(char *chaine) {
 	char *chaineDecode = NULL;
 
@@ -296,7 +317,7 @@ char * referenceTarget (void *root) {
 		// S'il n'y a pas de champs Host, on fait comme si celui-ci existe mais est nul (ça cherche le fichier à la racine du dossier www)
 		// Si on est en HTTP/1.1 on renvoit 400 Bad Request mais c'est géré plus tard
 		chaineHost = malloc(2 * sizeof(char));
-		sprintf(chaineHost, " ");
+		sprintf(chaineHost, "");
 	} else {
 		n2 = (noeud *) r2->node;
 		chaineHost = convString(n2 -> valeurChamp);
