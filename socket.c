@@ -11,8 +11,7 @@
 #include "fastcgi.h" 
 
 // =========================================================================================================== // 
-void writeSocket(int fd,FCGI_Header *h,unsigned int len)
-{
+void writeSocket(int fd,FCGI_Header *h,unsigned int len) {
 	int w;
 
 	h->contentLength=htons(h->contentLength); 
@@ -24,7 +23,8 @@ void writeSocket(int fd,FCGI_Header *h,unsigned int len)
 		do {
 			w = write(fd, h, len);
 		} while (w == -1 && errno == EINTR);
-	len-=w; 
+		
+		len-=w; 
 	}
 } 
 
@@ -39,8 +39,7 @@ void writeLen(int len, char **p) {
 }
 	
 // =========================================================================================================== // 
-int addNameValuePair(FCGI_Header *h,char *name,char *value)
-{
+int addNameValuePair(FCGI_Header *h,char *name,char *value) {
 	char *p; 
 	unsigned int nameLen=0,valueLen=0;
 
@@ -61,9 +60,8 @@ int addNameValuePair(FCGI_Header *h,char *name,char *value)
 }	 
 // =========================================================================================================== // 		
 	
-void sendGetValue(int fd) 
-{
-FCGI_Header h; 
+void sendGetValue(int fd) {
+	FCGI_Header h; 
 
 	h.version=FCGI_VERSION_1; 
 	h.type=FCGI_GET_VALUES; 
@@ -76,10 +74,9 @@ FCGI_Header h;
 	writeSocket(fd,&h,FCGI_HEADER_SIZE+(h.contentLength)+(h.paddingLength)); 
 }
 // =========================================================================================================== // 
-void sendBeginRequest(int fd,unsigned short requestId,unsigned short role,unsigned char flags) 
-{
-FCGI_Header h; 
-FCGI_BeginRequestBody *begin; 
+void sendBeginRequest(int fd,unsigned short requestId,unsigned short role,unsigned char flags) {
+	FCGI_Header h;
+	FCGI_BeginRequestBody *begin; 
 
 	h.version=FCGI_VERSION_1; 
 	h.type=FCGI_BEGIN_REQUEST; 
@@ -92,9 +89,8 @@ FCGI_BeginRequestBody *begin;
 	writeSocket(fd,&h,FCGI_HEADER_SIZE+(h.contentLength)+(h.paddingLength)); 
 }
 // =========================================================================================================== // 
-void sendAbortRequest(int fd,unsigned short requestId) 
-{
-FCGI_Header h; 
+void sendAbortRequest(int fd,unsigned short requestId) {
+	FCGI_Header h; 
 
 	h.version=FCGI_VERSION_1; 
 	h.type=htons(FCGI_ABORT_REQUEST); 
@@ -107,9 +103,8 @@ FCGI_Header h;
 #define sendData(fd,id,data,len) sendWebData(fd,FCGI_DATA,id,data,len)
 //============================================================================================================ // 
 
-void sendWebData(int fd,unsigned char type,unsigned short requestId,char *data,unsigned int len) 
-{
-FCGI_Header h; 
+void sendWebData(int fd,unsigned char type,unsigned short requestId,char *data,unsigned int len) {
+	FCGI_Header h; 
 
 	if (len > FASTCGILENGTH) return ; 
 	
@@ -123,8 +118,7 @@ FCGI_Header h;
 }
 
 // =========================================================================================================== // 
-static int createSocket(int port)
-{
+int createSocket(int port) {
 	int fd;
 	struct sockaddr_in serv_addr;
 	int enable = 1;
@@ -137,7 +131,7 @@ static int createSocket(int port)
 	bzero(&serv_addr, sizeof(serv_addr));
 
 	serv_addr.sin_family = AF_INET;
-	inet_aton("127.0.0.1",serv_addr.sin_addr.s_addr);
+	inet_aton("127.0.0.1",&(serv_addr.sin_addr));
 	serv_addr.sin_port = htons(port);
 
 	if (connect(fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) {
@@ -148,13 +142,12 @@ static int createSocket(int port)
 	return fd;
 }
 // =========================================================================================================== // 
-// int main(int argc,char *argv[])
-// {
-	// int fd; 
-	// fd=createSocket(9000); 
-	// sendGetValue(fd); 
-	// sendBeginRequest(fd,10,FCGI_RESPONDER,FCGI_KEEP_CONN); 
-	// sendStdin(fd,10,argv[1],strlen(argv[1])); 
-	// sendData(fd,10,argv[1],strlen(argv[1])); 
-// }
+/*int main(int argc,char *argv[]) {
+	int fd; 
+	fd=createSocket(9000); 
+	sendGetValue(fd); 
+	sendBeginRequest(fd,10,FCGI_RESPONDER,FCGI_KEEP_CONN); 
+	sendStdin(fd,10,argv[1],strlen(argv[1])); 
+	sendData(fd,10,argv[1],strlen(argv[1])); 
+}*/
 
