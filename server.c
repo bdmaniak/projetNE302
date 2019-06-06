@@ -19,6 +19,7 @@ taper dans la barre d'addresse : http://127.0.0.1/site/index.html
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <time.h>
+#include <signal.h>
 
 // for librequest 
 #include "request.h"   
@@ -413,6 +414,7 @@ void reponseServeur(int code, enTete *et1, char *msgBody, message *requeteRecu, 
 	// Encodage (on ne fait pas d'encodage donc pas très utile pour le moment...)
 	if (et1->contentEncoding != NULL) writeDirectClient(requeteRecu->clientId,et1->contentEncoding,strlen(et1->contentEncoding)); // Pour dire en quoi on encode (ex : "Content-Encoding: gzip\r\n") mais on encode en rien donc il n'y a rien à mettre.
 	// Langue du contenu (fr pour notre serveur)
+	signal(SIGPIPE, SIG_IGN);
 	writeDirectClient(requeteRecu->clientId,"Content-Language: fr\r\n",strlen("Content-Language: fr\r\n"));
 	// Longueur du body
 	if (et1->contentLength != NULL) writeDirectClient(requeteRecu->clientId,et1->contentLength,strlen(et1->contentLength));
