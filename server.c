@@ -548,9 +548,9 @@ int min(int a, int b){
 
 
 void contentType(char * chaineComplete, int mLen, enTete * et1) {
-	// Envoit le champ Content-Type de la reponse
+	// Envoie le champ Content-Type de la reponse
 
-	// On envoit un entête pour les png
+	// Pour les png
 	if (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'n' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
 	char * type = malloc(25 * sizeof(char));
 						
@@ -559,8 +559,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 	et1->contentType = type;
 	}
 
-	// On envoit un entête pour les jpg
-	if ((chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'p' && chaineComplete[mLen-3] == 'j' && chaineComplete[mLen-4] == '.') || (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'e' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.')) {
+	// Pour les jpg
+	else if ((chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'p' && chaineComplete[mLen-3] == 'j' && chaineComplete[mLen-4] == '.') || (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'e' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.')) {
 	char * type = malloc(26 * sizeof(char));
 
 	strcpy(type, "Content-Type: image/jpeg\r\n\0");
@@ -569,25 +569,32 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 	}
 
 	// Pour les gif
-	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'i' && chaineComplete[mLen-3] == 'g' && chaineComplete[mLen-4] == '.') {
+	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'i' && chaineComplete[mLen-3] == 'g' && chaineComplete[mLen-4] == '.') {
 	char * type = malloc(25 * sizeof(char));
 						
 	strcpy(type, "Content-Type: image/gif\r\n\0");			
 
 	et1->contentType = type;
 	}
-
-	// Pour les pdf
-	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'd' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
-		char * type = malloc(31 * sizeof(char));
+	
+	// Pour les bmp
+	else if (chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 'b' && chaineComplete[mLen-4] == '.') {
+	char * type = malloc(25 * sizeof(char));
 						
-		strcpy(type, "Content-Type: application/pdf\r\n\0");						
+	strcpy(type, "Content-Type: image/bmp\r\n\0");
 
+	et1->contentType = type;
+	}
+
+	// Pour les tiff
+	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'f' && chaineComplete[mLen-3] == 'i' && chaineComplete[mLen-4] == 't' && chaineComplete[mLen-5] == '.') {
+		char * type = malloc(30 * sizeof(char));
+		strcpy(type, "Content-Type: image/tiff\r\n\0");                        
 		et1->contentType = type;
 	}
 
 	// Pour le js
-	if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 'j' && chaineComplete[mLen-3] == '.') {
+	else if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 'j' && chaineComplete[mLen-3] == '.') {
 		char * type = malloc(46 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/javascript; charset=UTF-8\r\n\0");	
@@ -595,8 +602,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les .txt
-	if (chaineComplete[mLen-1] == 't' && chaineComplete[mLen-2] == 'x' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == '.') {
+	// Pour les txt
+	else if (chaineComplete[mLen-1] == 't' && chaineComplete[mLen-2] == 'x' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == '.') {
 		char * type = malloc(46 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/plain; charset=UTF-8\r\n\0");
@@ -604,8 +611,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les .html
-	if (chaineComplete[mLen-1] == 'l' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == 'h' && chaineComplete[mLen-5] == '.') {
+	// Pour les html
+	else if (chaineComplete[mLen-1] == 'l' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == 'h' && chaineComplete[mLen-5] == '.') {
 		char * type = malloc(45 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/html; charset=UTF-8\r\n\0");
@@ -613,8 +620,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les .css
-	if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 's' && chaineComplete[mLen-3] == 'c' && chaineComplete[mLen-4] == '.') {
+	// Pour les css
+	else if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 's' && chaineComplete[mLen-3] == 'c' && chaineComplete[mLen-4] == '.') {
 		char * type = malloc(44 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/css; charset=UTF-8\r\n\0");
@@ -622,8 +629,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les .json
-	if (chaineComplete[mLen-1] == 'n' && chaineComplete[mLen-2] == 'o' && chaineComplete[mLen-3] == 's' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.') {
+	// Pour les json
+	else if (chaineComplete[mLen-1] == 'n' && chaineComplete[mLen-2] == 'o' && chaineComplete[mLen-3] == 's' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.') {
 		char * type = malloc(52 * sizeof(char));
 
 		strcpy(type, "Content-Type: application/json; charset=UTF-8\r\n\0");
@@ -631,10 +638,21 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les tiff
-	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'f' && chaineComplete[mLen-3] == 'i' && chaineComplete[mLen-4] == 't' && chaineComplete[mLen-5] == '.') {
-		char * type = malloc(30 * sizeof(char));
-		strcpy(type, "Content-Type: image/tiff\r\n\0");                        
+	// Pour les pdf
+	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'd' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
+		char * type = malloc(31 * sizeof(char));
+						
+		strcpy(type, "Content-Type: application/pdf\r\n\0");						
+
+		et1->contentType = type;
+	}
+	
+	// Pour les fichiers inconnus
+	else{
+		char * type = malloc(45 * sizeof(char));
+
+		strcpy(type, "Content-Type: application/octet-stream\r\n\0");
+						
 		et1->contentType = type;
 	}
 }
