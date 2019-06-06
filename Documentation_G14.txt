@@ -52,6 +52,34 @@ Nous utilisons ainsi le parseur créé précédemment pour obtenir une première
 
 api.h :
 
+IMPORTANT:	Nous avons remplacé void *getRootTree() par void *getRootTree car sans argument on ne peut pas faire grand chose et la deuxième formulation est plus adaptée pour pointer
+			vers un élément de l'arbre
+
+	-> void *getRootTree;
+		- Pointeur de type opaque vers la racine de l'arbre de recherche
+
+	-> _Token *searchTree(void *start,char *name);
+		- Fonction qui recherche dans l'arbre tous les noeuds dont l'etiquette est égale à la chaine de caractères en argument.
+		- Par convention si start == NULL alors on commence à la racine
+		- Sinon on effectue une recherche dans le sous-arbre à partir du noeud start
+
+	-> char *getElementTag(void *node,int *len);
+		- Fonction renvoyant un pointeur vers char indiquant l'étiquette du noeud, c'est à dire le nom de la rulename et si celui-ci est intermediaire ou terminal,
+		et indique dans *len la longueur de cette chaine si le pointeur "*len" est non NULL
+
+	-> char *getElementValue(void *node,int *len);
+		- Fonction qui renvoie un pointeur vers char indiquant la valeur du noeud, soit la partie correspondnant à la rulename dans la requete HTTP,
+		et indique si len est non NULL dans *len la longueur de cette chaine.
+
+	-> void purgeElement(_Token **r);
+		- Fonction qui supprime et libère la mémoire de la liste chainée de réponse.
+
+	-> void purgeTree(void *root); 
+		- Normalement void*, mais changée pour plus de facilité
+		- Fonction qui supprime et libère toute la mémoire associée à l'arbre
+
+	-> int parseur(char *req, int len);
+		- L'appel au parseur sur une chaine de caractères de longueur "len"
 
 
 lecture.h :
