@@ -99,6 +99,7 @@ void sendAbortRequest(int fd,unsigned short requestId) {
 	h.paddingLength=0; 
 	writeSocket(fd,&h,FCGI_HEADER_SIZE+(h.contentLength)+(h.paddingLength)); 
 }
+#define sendParams(fd,id,params,len) sendWebData(fd,FCGI_PARAMS,id,params,len)
 #define sendStdin(fd,id,stdin,len) sendWebData(fd,FCGI_STDIN,id,stdin,len)
 #define sendData(fd,id,data,len) sendWebData(fd,FCGI_DATA,id,data,len)
 //============================================================================================================ // 

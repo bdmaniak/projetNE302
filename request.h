@@ -1,4 +1,3 @@
-#ifndef REQUEST_H
 /** 
 \file request.h 
 \author Quentin Giorgi 
@@ -74,7 +73,7 @@ int main(int argc, char *argv[])
 typedef struct {
 	char *buf;				/**< buf Un pointeur vers le message recu */
 	unsigned int len;			/**< len La longueur du message recu */
-	unsigned int clientId;			/**< clientId identifiant du client, recu dans une requete, doit etre recopie dans la reponse correspondante*/
+	unsigned int clientId;			/**< clientId identifiant du client, recu dans une requete, doit etre recopier dans la reponse correspondante*/
 	struct sockaddr_in *clientAddress; 	/**< iclientAddress pointeur vers une structure permettant de recuperer l'adresse IP et le port du client HTTP */
 } message;
 
@@ -132,4 +131,3 @@ void requestShutdownSocket(int i);
 
 
 
-#endif
