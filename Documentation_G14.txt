@@ -10,6 +10,23 @@
 |___________________________________________________________________________________________________________________________________________________________________________________|
 
 
+PARTIE PARSEUR :
+
+	-> Structure de l'arbre de recherche ; Structure "noeud" composée de :
+		- Un pointeur vers un noeud "fils" de ce noeud (peut être nul)
+		- Un pointeur vers un noeud "frère" de ce noeud (peut être nul également)
+			_ Les frères forment une sorte de liste chaînée utilisée pour la recherche.
+		- Une chaine de caractères "nomChamp" contenant le nom du champ représenté par le noeud courant
+		- Une chaine de caractères "valeurChamp" contenant la valeur du champ représenté par le noeud courant
+	
+	-> Structure de lecture de chaine de caractères dans un fichier ; Structure "string" composée de :
+		- Un pointeur vers le fichier ouvert en lecture
+		- Un entier balisant le début de la chaine de caractères courante dans le fichier
+		- La taille de la chaine de caractères courante
+
+
+PARTIE SERVEUR :
+
 	-> Structure des headers ; Structure enTete composé des chaînes de caractères suivantes :
 		- contentEncoding	: Type d'encodage du contenu
 		- contentLanguage	: Langue du contenu (pour nous français)
@@ -25,6 +42,113 @@ Nous avons pris le parti dans ce projet de partir sur une approche utilisant bea
 grammaire.txt. 
 Nous utilisons ainsi le parseur créé précédemment pour obtenir une première vérification sémantique. Ensuite, nous vérifions la syntaxe de la requête à l'intérieur même du serveur.
 
+
+
+ ___________________________________________________________________________________________________________________________________________________________________________________
+|																																													|
+|																		Fonctions du parseur :																						|
+|___________________________________________________________________________________________________________________________________________________________________________________|
+
+
+api.h :
+
+
+
+lecture.h :
+
+	-> char lire (FILE *lu, int indice);
+		- Permet de lire le indice-ième caractère du fichier pointé par "lu"
+
+	-> int rechercheMot(char *mot, FILE *fic);
+		- Retourne la ligne de grammaire.txt correspondant à la définition du mot-clé "mot"
+
+
+	-> int rechercheString(string *mot, FILE *fic);
+		- Retourne la ligne de grammaire.txt correspondant à la définition de la chaine de caractères "mot"
+
+	-> int pointeurLigne (FILE *fic, int n);
+		- Permet de retourner l'indice correspondant à la n-ième ligne du fichier
+
+	-> string *recupereMot (int ligne, int n, FILE *fic);
+		- Permet de stocker le n-ième mot de la ligne-ième ligne dans une structure string
+
+	-> char recupChar (string *chaine, int n);
+		- Permet de récupérer le n-ième char de la structure string "chaine"
+
+	-> int compareChaineStr (string *s1, char *chaine);
+		- Compare un élément de type string avec un char* (comme strcmp)
+
+	-> int compareString(string *s1, string *s2);
+		- Compare deux structures string entre elles (comme strcmp)
+
+	-> void afficherString(string *chaine);
+		- Affiche un élément de type string
+
+	-> char *convString(string *chaine);
+		- Convertit une structure string en chaine de caractères
+
+	-> int IndiceDernierElement(int ligne, FILE *grammaire);
+		- Retourne la position du dernier mot sur une ligne du fichier "grammaire" (Sera utile pour creerArbre)
+
+	-> void afficherArbreBasic(noeud *n1);
+		- Fonction simple permettant d'afficher une partie de l'arbre
+
+	-> void afficherArbre(noeud *n1);
+		- Affiche l'arbre en partant du noeud "n1"
+		
+
+grammaire.h :
+
+	-> noeud *creerNoeud(string *s1, string *s2);
+		- Crée un noeud avec comme nomChamp "s1" et comme valeurChamp "s2"
+
+	-> void ajouteFils(noeud *n1, noeud *n2);
+		- Ajoute un noeud fils "n2" à un noeud "n1". "n1" sera le noeud "père" de "n2".
+
+	-> void ajouteFrere(noeud *n1, noeud *n2);
+		- Ajoute un noeud frère "n2" à un noeud "n1", qui correspondra à son "grand frère"
+
+	-> int tailleNoeud (noeud *n1);
+		- Permet de déterminer la taille d'un noeud. Cette taille correspond à la somme des tailles de ses fils
+
+	-> string *creerString(FILE *fic, int start, int size);
+		- Permet d'insérer un élément de la grammaire dans une structure string à partir d'un curseur et d'une taille en paramètre
+
+	-> noeud *etoile(FILE* grammaire, FILE* lu, int *indice, int ligne, int i, int j , int borne1, int borne2);
+		- Cette fonction permet de créer le sous-arbre représentant l'opérateur "*" dans la grammaire
+
+	-> noeud *SP (FILE *grammaire, FILE *lu, int *indice);
+		- Crée un noeud si la grammaire signale un espace ET que le caractère lu dans le fichier lu est un espace
+		- Renvoie NULL sinon
+
+	-> noeud *HTAB (FILE *grammaire, FILE *lu, int *indice);
+		- Même principe que SP avec une tabulation HTAB
+
+	-> noeud *DIGIT (FILE *grammaire, FILE *lu, int *indice);
+		- Même principe que SP et HTAB avec un nombre entre 0 et 9
+
+	-> noeud *ALPHA (FILE *grammaire, FILE *lu, int *indice);
+		- Même principe que SP, HTAB et DIGIT avec une lettre
+
+	-> noeud *caseInsensitive (FILE *grammaire, FILE *lu, int *indice, string *element);
+		- Même principe, le noeud est créé s'il y a un mot entre guillemet dans grammaire.txt, et si ce mot est présent dans le fichier lu
+
+	-> noeud *CRLF (FILE *grammaire, FILE *lu, int *indice);
+		- Même chose avec "\r\n"
+
+	-> char convAscii (char hexa[3]);
+		- Permet de convertir une chaine de deux char representant un octet hexadecimal en un caractere ASCII(char)
+
+	-> noeud *valAscii (FILE *grammaire, FILE *lu, int *indice, string *element);
+		- Cas de base qui gère les éléments de grammaire.txt avec des % suivis de valeurs hexadecimales
+
+	-> noeud *creerArbre(FILE *grammaire, FILE *lu, int *indice, int ligne, int i, int j);
+		- Base du parseur
+		- Grosse fonction récursive qui crée l'arbre en parcourant grammaire.txt ainsi que la requête en utilisant les fonctions précédentes
+
+	-> CAS DE BASE:
+		- On compare les elements de grammaire.txt avec les éléments lus dans la requête pour s'assurer que la requête est correcte.
+		- On construit les feuilles de l'arbre au passage, qui seront reliées aux noeuds parents de manière recursive.
 
 
  ___________________________________________________________________________________________________________________________________________________________________________________
@@ -66,7 +190,7 @@ Nous utilisons ainsi le parseur créé précédemment pour obtenir une première
 		- Vérifie la validité de la requête, et initie l'envoi d'une erreur 400 (requête fausse) dans les cas suivants :
 			_ Si des champs incompatibles sont remplis
 			_ Si on est en HTTP 1.0 et que le champ Host est vide (en 1.0 c'est accepté)
-			_ Si la version HTTP n'est ni 1.0 ni 1.1 (Non supporté)
+			_ Si la version HTTP n'est ni 1.0 ni 1.1 (Version non supportée)
 			_ Si plus d'un champ Host se trouvent dans le message
 			
 		- Cette fonction renvoie 1 si une erreur a été détectée et 0 si la requête est correcte
