@@ -26,5 +26,6 @@ void ajouterHeure(enTete *et1);
 int verification();
 int min(int a, int b);
 void contentType(char * chaineComplete, int mLen, enTete * et1);
+void envoyerPHP (enTete *et1, message* requeteRecu, int method);
 
 #endif

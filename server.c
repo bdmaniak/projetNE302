@@ -53,7 +53,8 @@ taper dans la barre d'addresse : http://127.0.0.1/site/index.html
 
 // Constantes
 
-#define DOSSIER_SERVER "./www/" //Dossier dans lequel les sites du serveur sont stockes
+#define DOSSIER_SERVER "./www/" // Dossier dans lequel les sites du serveur sont stockes
+#define ROOT_PHP "/home/userir/Documents/projetNE/Etape4/www/127.0.0.1" // Pareil mais pour le php (on envoit le chemin complet pour le serveur FCGI)
 #define MAX_SIZE 100000000 // Définit une taille maximale pour l'envoit de fichier (on ne peut pas envoyer un fichier de 10 Go)
 #define ERROR "HTTP/1.0 400 SUCKA\r\n\r\n"
 #define REPONSE "HTTP/1.0 200 OK\r\nContent-type: text/plain\r\n\r\nHey Bro why did you send me this:\r\n"
@@ -122,60 +123,47 @@ int main(int argc, char *argv[]) {
 					int mLen = 0;
 					if (chaineComplete != NULL) mLen = strlen(chaineComplete);
 
-					// AJOUT PHP ATTENTION CA PEUT EXPLOSER
 					if ((chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'h' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.')) {
-						printf("\nON EST DANS LE IF PHP AHAHAH\n");
-						// Là ça va exploser
-						int fd;
-						if((fd = createSocket(9000)) == -1) {
-							printf("ERREUR lors de la création de la socket.\n");
-						}
-						printf("ON A CREE LA SOCKET AHAHAH\n");
+						// On envoit tout au serveur FCGI pour qu'il nous envoit une page html
+						envoyerPHP(et1, requeteRecu, 0);
+					} else {
+						// On gère le Content-Type
+						//On reconnait un fichier par son extension. Ce programme ne fonctionnera pas si l'extension n'est pas correcte.
+						contentType(chaineComplete, mLen, et1);
+									
+						FILE * target;
+						if ((target = fopen(chaineComplete, "rb"))) {
+							size_t taille;
+							fseek(target, 0, SEEK_END);
+							taille = ftell(target);
+							rewind(target);
 
-						sendBeginRequest(fd,1,FCGI_RESPONDER,FCGI_KEEP_CONN);  // A voir s'il faut FCGI_KEEP_CONN
-						printf("ON A BEGIN LA REQUEST AHAHAH\n");
-
-						// On crée un FCGI_Header pour les paramètres
-						FCGI_Header h;
-						h.version = FCGI_VERSION_1; 
-						h.type = FCGI_PARAMS;
-						h.requestId = htons(1); 
-						h.contentLength = 0;
-						h.paddingLength = 0;
-
-						printf("LE DATA AVANT : %s\n", h.contentData);
-						addNameValuePair(&h, "HTTP_HOST", "127.0.0.1");
-						addNameValuePair(&h, "HTTP_PLOP", "HIHIHI");
-						printf("LE DATA APRES : %s\n", h.contentData);
-						printf("LA TAILLE DU DATA EST DE %d AHAHAH\n", h.contentLength);
+							fread(buf, 1, taille, target);
 						
-						sendParams(fd, 1, h.contentData, h.contentLength);
-						printf("ON A ENVOYE LES PARAMETRES AHAHAH\n");
-						sendParams(fd, 1, "", 0);
-						printf("ON A ENVOYE LES PARAMETRES VIDES AHAHAH\n");
-
-						sendStdin(fd, 1 , "", 0);
-						printf("ON A ENVOYE DU VIDE DANS LE STDIN AHAHAH\n");
-						printf("JE SAIS PAS COMMENT RECUP STDOUT MAIS ON TEST AHAHAH\n");
-						ssize_t lect = -1;
-						lect = read(fd, h.contentData, FASTCGILENGTH);
-						printf("On a lu %d caractères et on a \"%s\"...\n", lect, h.contentData);
-						printf("TROP FORT AHAHAH\n");
-
-						_Token * rMB = NULL;
-						rMB = searchTree(getRootTree, "message-body");
-						noeud * nMB = NULL;
-						if (rMB != NULL) nMB = (noeud *) (rMB->node);
-						char *MB = NULL;
-						if (nMB != NULL) MB = convString(nMB->valeurChamp);
-
+							reponseServeur(200, et1, buf, requeteRecu, taille);
+							fclose(target);
+						}
+						else {
+							reponseServeur(404, et1, NULL, requeteRecu, taille);
+						}
 					}
-					
+				}	
+			}
 
+			//Methode POST
+			else if (compareChaineStr(n->valeurChamp, "POST") == 1) {
+				char *chaineComplete = referenceTarget(root);
+				int mLen = 0;
+				if (chaineComplete != NULL) mLen = strlen(chaineComplete);
+				
+				if ((chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'h' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.')) {
+					// On envoit tout au serveur FCGI pour qu'il nous envoit une page html
+					envoyerPHP(et1, requeteRecu, 1);
+				} else {
 					// On gère le Content-Type
 					//On reconnait un fichier par son extension. Ce programme ne fonctionnera pas si l'extension n'est pas correcte.
 					contentType(chaineComplete, mLen, et1);
-			
+								
 					FILE * target;
 					if ((target = fopen(chaineComplete, "rb"))) {
 						size_t taille;
@@ -188,41 +176,44 @@ int main(int argc, char *argv[]) {
 						reponseServeur(200, et1, buf, requeteRecu, taille);
 						fclose(target);
 					}
-					else{
-						reponseServeur(404, et1, NULL, requeteRecu, taille);
-					}
-				}	
-			}
-
-			//Methode POST
-			else if (compareChaineStr(n->valeurChamp, "POST") == 1){
-				reponseServeur(501, et1, NULL, requeteRecu, 0);
-			}
-
-			//Methode HEAD
-			else if (compareChaineStr(n->valeurChamp, "HEAD") == 1){
-
-				if ((((noeud *)(searchTree(root, "message-body")->node))->valeurChamp)->taille) reponseServeur(400, et1, "Message body in a HEAD request\n", requeteRecu, 0);
-
-				else{
-
-					char *chaineComplete = referenceTarget(root);
-					FILE * target;
-					if ((target = fopen(chaineComplete, "rb"))){
-						size_t taille; // Taille du body que l'on aurait envoyé si c'était un GET (sert pour Content-Length)
-						fseek(target, 0, SEEK_END);
-						taille = ftell(target);
-						rewind(target);
-
-						reponseServeur(200, et1, NULL, requeteRecu, taille);
-						fclose(target);
-					}
-					else{
+					else {
 						reponseServeur(404, et1, NULL, requeteRecu, taille);
 					}
 				}
 			}
-			else{
+
+			//Methode HEAD
+			else if (compareChaineStr(n->valeurChamp, "HEAD") == 1) {
+
+				if ((((noeud *)(searchTree(root, "message-body")->node))->valeurChamp)->taille) reponseServeur(400, et1, "Message body in a HEAD request\n", requeteRecu, 0);
+
+				else {
+					char *chaineComplete = referenceTarget(root);
+					int mLen = 0;
+					if (chaineComplete != NULL) mLen = strlen(chaineComplete);
+
+					if ((chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'h' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.')) {
+						// On envoit tout au serveur FCGI pour qu'il nous envoit une page html
+						envoyerPHP(et1, requeteRecu, 2);
+					} else {
+						char *chaineComplete = referenceTarget(root);
+						FILE * target;
+						if ((target = fopen(chaineComplete, "rb"))) {
+							size_t taille; // Taille du body que l'on aurait envoyé si c'était un GET (sert pour Content-Length)
+							fseek(target, 0, SEEK_END);
+							taille = ftell(target);
+							rewind(target);
+
+							reponseServeur(200, et1, NULL, requeteRecu, taille);
+							fclose(target);
+						}
+						else{
+							reponseServeur(404, et1, NULL, requeteRecu, taille);
+						}
+					}
+				}
+			}
+			else {
 				reponseServeur(501, et1, NULL, requeteRecu, taille);
 			}
 			if (r != NULL) purgeElement(&r); 
@@ -413,8 +404,11 @@ void reponseServeur(int code, enTete *et1, char *msgBody, message *requeteRecu, 
 	
 	// Encodage (on ne fait pas d'encodage donc pas très utile pour le moment...)
 	if (et1->contentEncoding != NULL) writeDirectClient(requeteRecu->clientId,et1->contentEncoding,strlen(et1->contentEncoding)); // Pour dire en quoi on encode (ex : "Content-Encoding: gzip\r\n") mais on encode en rien donc il n'y a rien à mettre.
-	// Langue du contenu (fr pour notre serveur)
+	
+	// 
 	signal(SIGPIPE, SIG_IGN);
+
+	// Langue du contenu (fr pour notre serveur)
 	writeDirectClient(requeteRecu->clientId,"Content-Language: fr\r\n",strlen("Content-Language: fr\r\n"));
 	// Longueur du body
 	if (et1->contentLength != NULL) writeDirectClient(requeteRecu->clientId,et1->contentLength,strlen(et1->contentLength));
@@ -548,9 +542,9 @@ int min(int a, int b){
 
 
 void contentType(char * chaineComplete, int mLen, enTete * et1) {
-	// Envoie le champ Content-Type de la reponse
+	// Envoit le champ Content-Type de la reponse
 
-	// Pour les png
+	// On envoit un entête pour les png
 	if (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'n' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
 	char * type = malloc(25 * sizeof(char));
 						
@@ -559,8 +553,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 	et1->contentType = type;
 	}
 
-	// Pour les jpg
-	else if ((chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'p' && chaineComplete[mLen-3] == 'j' && chaineComplete[mLen-4] == '.') || (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'e' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.')) {
+	// On envoit un entête pour les jpg
+	if ((chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'p' && chaineComplete[mLen-3] == 'j' && chaineComplete[mLen-4] == '.') || (chaineComplete[mLen-1] == 'g' && chaineComplete[mLen-2] == 'e' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.')) {
 	char * type = malloc(26 * sizeof(char));
 
 	strcpy(type, "Content-Type: image/jpeg\r\n\0");
@@ -569,32 +563,25 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 	}
 
 	// Pour les gif
-	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'i' && chaineComplete[mLen-3] == 'g' && chaineComplete[mLen-4] == '.') {
+	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'i' && chaineComplete[mLen-3] == 'g' && chaineComplete[mLen-4] == '.') {
 	char * type = malloc(25 * sizeof(char));
 						
 	strcpy(type, "Content-Type: image/gif\r\n\0");			
 
 	et1->contentType = type;
 	}
-	
-	// Pour les bmp
-	else if (chaineComplete[mLen-1] == 'p' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 'b' && chaineComplete[mLen-4] == '.') {
-	char * type = malloc(25 * sizeof(char));
+
+	// Pour les pdf
+	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'd' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
+		char * type = malloc(31 * sizeof(char));
 						
-	strcpy(type, "Content-Type: image/bmp\r\n\0");
+		strcpy(type, "Content-Type: application/pdf\r\n\0");						
 
-	et1->contentType = type;
-	}
-
-	// Pour les tiff
-	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'f' && chaineComplete[mLen-3] == 'i' && chaineComplete[mLen-4] == 't' && chaineComplete[mLen-5] == '.') {
-		char * type = malloc(30 * sizeof(char));
-		strcpy(type, "Content-Type: image/tiff\r\n\0");                        
 		et1->contentType = type;
 	}
 
 	// Pour le js
-	else if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 'j' && chaineComplete[mLen-3] == '.') {
+	if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 'j' && chaineComplete[mLen-3] == '.') {
 		char * type = malloc(46 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/javascript; charset=UTF-8\r\n\0");	
@@ -602,8 +589,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les txt
-	else if (chaineComplete[mLen-1] == 't' && chaineComplete[mLen-2] == 'x' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == '.') {
+	// Pour les .txt
+	if (chaineComplete[mLen-1] == 't' && chaineComplete[mLen-2] == 'x' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == '.') {
 		char * type = malloc(46 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/plain; charset=UTF-8\r\n\0");
@@ -611,8 +598,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les html
-	else if (chaineComplete[mLen-1] == 'l' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == 'h' && chaineComplete[mLen-5] == '.') {
+	// Pour les .html
+	if (chaineComplete[mLen-1] == 'l' && chaineComplete[mLen-2] == 'm' && chaineComplete[mLen-3] == 't' && chaineComplete[mLen-4] == 'h' && chaineComplete[mLen-5] == '.') {
 		char * type = malloc(45 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/html; charset=UTF-8\r\n\0");
@@ -620,8 +607,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les css
-	else if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 's' && chaineComplete[mLen-3] == 'c' && chaineComplete[mLen-4] == '.') {
+	// Pour les .css
+	if (chaineComplete[mLen-1] == 's' && chaineComplete[mLen-2] == 's' && chaineComplete[mLen-3] == 'c' && chaineComplete[mLen-4] == '.') {
 		char * type = malloc(44 * sizeof(char));
 
 		strcpy(type, "Content-Type: text/css; charset=UTF-8\r\n\0");
@@ -629,8 +616,8 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les json
-	else if (chaineComplete[mLen-1] == 'n' && chaineComplete[mLen-2] == 'o' && chaineComplete[mLen-3] == 's' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.') {
+	// Pour les .json
+	if (chaineComplete[mLen-1] == 'n' && chaineComplete[mLen-2] == 'o' && chaineComplete[mLen-3] == 's' && chaineComplete[mLen-4] == 'j' && chaineComplete[mLen-5] == '.') {
 		char * type = malloc(52 * sizeof(char));
 
 		strcpy(type, "Content-Type: application/json; charset=UTF-8\r\n\0");
@@ -638,22 +625,206 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		et1->contentType = type;
 	}
 
-	// Pour les pdf
-	else if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'd' && chaineComplete[mLen-3] == 'p' && chaineComplete[mLen-4] == '.') {
-		char * type = malloc(31 * sizeof(char));
-						
-		strcpy(type, "Content-Type: application/pdf\r\n\0");						
-
-		et1->contentType = type;
-	}
-	
-	// Pour les fichiers inconnus
-	else{
-		char * type = malloc(45 * sizeof(char));
-
-		strcpy(type, "Content-Type: application/octet-stream\r\n\0");
-						
+	// Pour les tiff
+	if (chaineComplete[mLen-1] == 'f' && chaineComplete[mLen-2] == 'f' && chaineComplete[mLen-3] == 'i' && chaineComplete[mLen-4] == 't' && chaineComplete[mLen-5] == '.') {
+		char * type = malloc(30 * sizeof(char));
+		strcpy(type, "Content-Type: image/tiff\r\n\0");                        
 		et1->contentType = type;
 	}
 }
 
+void envoyerPHP (enTete *et1, message* requeteRecu, int method) {
+	int fd;
+	if((fd = createSocket(9000)) == -1) {
+		printf("ERREUR lors de la création de la socket.\n");
+	}
+
+	sendBeginRequest(fd,1,FCGI_RESPONDER,FCGI_KEEP_CONN);
+
+	// On crée un FCGI_Header pour les paramètres
+	FCGI_Header h;
+	h.version = FCGI_VERSION_1; 
+	h.type = FCGI_PARAMS;
+	h.requestId = htons(1); 
+	h.contentLength = 0;
+	h.paddingLength = 0;
+
+	// Pour chercher des entetes
+	_Token * rMB = NULL;
+	noeud * nMB = NULL;
+	char *MB = NULL;
+
+	char mRoot[] = ROOT_PHP; // Pour Apache : /var/www/html
+
+	// On ajoute les paramètres un par un (si un paramètre n'est pas trouvé dans le header envoyé par le client, MB vaut NULL et on ne l'ajoute pas en paramètre)
+	addNameValuePair(&h, "proxy-nokeepalive", "1");
+	addNameValuePair(&h, "HTTP_HOST", "127.0.0.1");
+
+	rMB = searchTree(getRootTree, "User-Agent");
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_USER_AGENT", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Accept");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_ACCEPT", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Accept-Language");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_ACCEPT_LANGUAGE", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Accept-Encoding");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_ACCEPT_ENCODING", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Referer");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_REFERER", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Content-Type");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "CONTENT_TYPE", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Content-Length");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "CONTENT_LENGTH", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Connection");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_CONNECTION", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Content-Length");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "CONTENT_LENGTH", MB);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "Cache-Control");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) addNameValuePair(&h, "HTTP_CACHE_CONTROL", MB);
+
+	addNameValuePair(&h, "PATH", getenv("PATH"));
+	addNameValuePair(&h, "SERVER_NAME", "Groupe14");
+	addNameValuePair(&h, "SERVER_ADDR", "127.0.0.1");
+	addNameValuePair(&h, "SERVER_PORT", "8080");
+	addNameValuePair(&h, "REMOTE_ADDR", "127.0.0.1");
+	addNameValuePair(&h, "DOCUMENT_ROOT", mRoot);
+	addNameValuePair(&h, "REQUEST_SCHEME", "http");
+	addNameValuePair(&h, "CONTEXT_PREFIX", "");
+	addNameValuePair(&h, "CONTEXT_DOCUMENT_ROOT", mRoot);
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "request-target");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	char filename[100] = "/";
+	strcat(filename, mRoot);
+	strcat(filename, MB);
+	if (MB != NULL) addNameValuePair(&h, "SCRIPT_FILENAME", filename);
+
+	char version[10] = "HTTP/";
+	rMB = NULL;
+	nMB = NULL;
+	rMB = searchTree((searchTree(getRootTree,"HTTP-version")->node), "DIGIT");
+	if (rMB != NULL) nMB = (noeud * ) rMB -> node;
+	if (nMB != NULL) strcat(version, &((convString(nMB -> valeurChamp))[0]));
+	if (rMB != NULL) nMB = (noeud * ) (rMB -> next) -> node;
+	strcat(version, ".");
+	if (nMB != NULL) strcat(version, &((convString(nMB  -> valeurChamp))[0]));
+	if (nMB != NULL) addNameValuePair(&h, "SERVER_PROTOCOL", version);
+
+	if (method == 1) {
+		addNameValuePair(&h, "REQUEST_METHOD", "POST");
+	} else {
+		addNameValuePair(&h, "REQUEST_METHOD", "GET");
+	}
+
+	addNameValuePair(&h, "QUERY_STRING", "");
+
+	rMB = NULL;
+	rMB = searchTree(getRootTree, "request-target");
+	nMB = NULL;
+	MB = NULL;
+	if (rMB != NULL) nMB = (noeud *) (rMB->node);
+	if (nMB != NULL) MB = convString(nMB->valeurChamp);
+	if (MB != NULL) {
+		addNameValuePair(&h, "REQUEST_URI", MB);
+		addNameValuePair(&h, "SCRIPT_NAME", MB);
+	}
+	
+	// On envoit les paramètres
+	sendParams(fd, 1, h.contentData, h.contentLength);
+	sendParams(fd, 1, "", 0);
+
+	// On envoit le body (rien pour GET et HEAD)
+	if (method == 1) {
+		// Si la méthode est POST on envoit le body dans STDIN.
+		// Dans tous les cas, on envoit un STDIN vide après
+		rMB = NULL;
+		rMB = searchTree(getRootTree, "message-body");
+		nMB = NULL;
+		MB = NULL;
+		if (rMB != NULL) nMB = (noeud *) (rMB->node);
+		if (nMB != NULL) MB = convString(nMB->valeurChamp);
+		if (MB != NULL) {
+			sendStdin(fd, 1, MB, strlen(MB));
+		}
+	}
+	sendStdin(fd, 1 , "", 0);
+
+	// On lit dans STDOUT ce que nous renvoit le serveur FCGI
+	et1->contentType = "Content-Type: text/html; charset=UTF-8\r\n\0";
+
+	read(fd, &h, FASTCGILENGTH);
+
+	printf("\nCoucou\n");
+	if (strstr(h.contentData, "Primary script unknown") != NULL) {
+		// Si le serveur FCGI nous renvoit une erreur 404
+		reponseServeur(404, et1, NULL, requeteRecu, 0);
+	} else {
+		char *body = strchr(h.contentData, '<');
+
+		if (method == 2) {
+			// Si c'est un head on envoit pas de body
+			reponseServeur(200, et1, NULL, requeteRecu, strlen(body));
+		} else {
+			reponseServeur(200, et1, body, requeteRecu, strlen(body));
+		}
+	}
+}

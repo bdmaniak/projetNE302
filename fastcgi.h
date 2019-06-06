@@ -84,7 +84,7 @@ typedef struct __attribute__((__packed__)) {
 /*
  * Mask for flags component of FCGI_BeginRequestBody
  */
-#define FCGI_KEEP_CONN  1
+#define FCGI_KEEP_CONN  0
 
 #define FCGI_RESPONDER  1
 #define FCGI_AUTHORIZER 2

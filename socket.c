@@ -57,7 +57,6 @@ int addNameValuePair(FCGI_Header *h,char *name,char *value) {
 	if (value) strncpy(p,value,valueLen); 
 	h->contentLength+=nameLen+((nameLen>0x7F)?4:1);
 	h->contentLength+=valueLen+((valueLen>0x7F)?4:1);
-	return 0;
 }	 
 // =========================================================================================================== // 		
 	
