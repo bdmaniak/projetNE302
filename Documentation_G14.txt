@@ -110,4 +110,8 @@ Nous utilisons ainsi le parseur créé précédemment pour obtenir une première
 
 	- On libère ensuite la mémoire utilisée et on attend la requête suivante.
 
+	- On ignore les signaux SIGPIPE (Broken Pipe), car ceux-ci sont générés lorsqu'une connexion est brutalement interrompue et ont pour effet de fermer le serveur. Cela n'a pas 
+	d'incidence sur le comportement du serveur même, car lorsqu'une connexion est rompue aucune réponse n'est à renvoyer, et si le client renvoie une requête correcte celle-ci
+	sera tout de même traîtée. Cela élimine la fermeture inopinée du serveur si on tente de recharger une page déjà en cours de chargement par le serveur.
+
 
