@@ -641,11 +641,15 @@ void contentType(char * chaineComplete, int mLen, enTete * et1) {
 		strcpy(cmd, "file -i -b ");
 		strcat(cmd, chaineComplete);
 		strcat(cmd, " >> ./ext.txt");
-		system(cmd);
-		fscanf(f, "%s", ext);
-		strcpy(type, "Content-Type: ");
-		strcat(type, ext);
-		strcat(type, "\r\n\0");
+		int indic = system(cmd);
+		if(indic == -1){ // Si l'appel systeme echoue, on donne un type generique au fichier
+			strcpy(type, "Content-Type: application/octet-stream\r\n\0");
+		}else{
+			fscanf(f, "%s", ext);
+			strcpy(type, "Content-Type: ");
+			strcat(type, ext);
+			strcat(type, "\r\n\0");
+		}
 		et1->contentType = type;
 		free(ext);
 		fclose(f);
